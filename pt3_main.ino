@@ -182,35 +182,51 @@ void display_star() {
 }
 
 // fonction bloc de terre
-void display_blockterre(int x, int y, int l, int h){
-  tft.fillRect(x, y, l, h, RED);
+void art_blockterre(int x, int y){
+    tft.fillRect(x, y, 20, 20, RED);
 }
 
 // fonction bloc de terre de surface
-void display_blocksurface(int x, int y, int l){
-  tft.fillRect(x, y, l, 5, ORANGE);
-  tft.fillRect(x, y+5, l, 15, RED);
+void art_blocksurface(int x, int y){
+    tft.fillRect(x, y, 20, 5, ORANGE);
+    tft.fillRect(x, y+5, 20, 15, RED);
+    tft.fillRect(x, y+5, 2, 1, ORANGE);
+    tft.fillRect(x, y+6, 1, 1, ORANGE);
+    tft.fillRect(x+4, y+4, 2, 1, RED);
+    tft.fillRect(x+7, y+5, 1, 1, ORANGE);
+    tft.fillRect(x+9, y+4, 1, 1, RED);
+    tft.fillRect(x+12, y+4, 1, 1, RED);
+    tft.fillRect(x+14, y+5, 1, 1, ORANGE);
+    tft.fillRect(x+17, y+4, 2, 1, RED);
+    tft.fillRect(x+17, y+3, 1, 1, RED);
+
 }
 
 // fonction boule de feu
-void display_fire(int x, int y){
-  y=y+8;
-  tft.fillTriangle(x-8, y-5, x-8, y-14, x-2, y-9, RED); // point blanc
-  tft.fillTriangle(x-7, y-11, x+2, y-8, x-1, y-18, RED); // point jaune
-  tft.fillTriangle(x, y-8, x+4, y-9, x+4, y-22, RED); // point bleu f
-  tft.fillTriangle(x+4, y-8, x+8, y-13, x+8, y-6, RED); // point bleu c
-  tft.fillCircle(x, y, 9, RED);
-  tft.fillCircle(x, y+3, 8, ORANGE);
-  tft.fillCircle(x, y+4, 5, YELLOW); 
+void art_fire(int x, int y){
+    y=y+10;
+    tft.fillTriangle(x-8, y-5, x-8, y-14, x-2, y-9, RED); // point blanc
+    tft.fillTriangle(x-7, y-11, x+2, y-8, x-1, y-18, RED); // point jaune
+    tft.fillTriangle(x, y-8, x+4, y-9, x+4, y-22, RED); // point bleu f
+    tft.fillTriangle(x+4, y-8, x+8, y-13, x+8, y-6, RED); // point bleu c
+    tft.fillCircle(x, y, 9, RED);
+    tft.fillCircle(x, y+3, 8, ORANGE);
+    tft.fillCircle(x, y+4, 5, YELLOW); 
+    
 }
 
 // fonction test boule de feu
-void test(){
-    display_blocksurface(0, 220, 320);
-    display_blockterre(180, 220, 20, 20);
-    display_blocksurface(180, 200, 20);
-
-    display_fire(100, 180);
+void art_Map(){
+    for(int i = 0; i<320; i=i+20){
+        if(i==180) {
+            art_blockterre(i, 220);
+            art_blocksurface(i, 200);
+        }
+        else {
+            art_blocksurface(i, 220);
+        }  
+    }
+    art_fire(100, 200);  
 }
 
 // fonction slime
@@ -438,38 +454,50 @@ void setup_player(Entity &player) {
 }*/
 
 void update_physics(Entity &player) {
-  Serial.println("physics updated");
   player.prevx = player.x;
   player.prevy = player.y;
 
-  if(airborn) player.ay = -10;
+  if(airborn) player.ay = 2;
   
-  if(airborn && upPressed) player.ay = -8;
-  else player.ay = -10;
+  if(airborn && upPressed) player.ay = 1;
+  else player.ay = 2;
 
   if(!airborn && upPressed) {
     airborn = true;
     player.speedy = 30;
 	}
 
-	if(downPressed) player.ay = -20;
-  else player.ay = -10;
+	if(downPressed) player.ay = 3;
+  else player.ay = 2;
 
-	if(rightPressed) player.ax = 10;
-  else player.ax = 0;
+  player.ax = 0;
 
-	if(leftPressed) player.ax = 10;
-  else player.ax = 0;
+	if(rightPressed) player.ax = 2;
 
+	if(leftPressed) player.ax = -2;
+
+  if(!(leftPressed || rightPressed)) player.speedx = player.speedx/2;
+
+  update_position(player);
+}
+
+void update_position(Entity &player) {
   player.speedx = player.speedx + player.ax;
-  player.speedy = player.speedy + player.ay;
-  player.x = player.x + player.speedx;
-  player.y = player.y + player.speedy;
-
-  if(upPressed || downPressed || leftPressed || rightPressed) {
-    physicsUpdated = true;
+  //player.speedy = player.speedy + player.ay;
+  if(player.x + player.speedx > SCREENWIDTH) {
+    player.speedx = 0;
+    player.ax = 0;
+    player.x = SCREENWIDTH;
   }
-  else physicsUpdated = false;
+  else if (player.x +player.speedx < 0) {
+    player.speedx = 0;
+    player.ax = 0;
+    player.x = 0;
+  }
+  else {
+    player.x = player.x + player.speedx;
+  }
+  //player.y = player.y + player.speedy;
 }
 
 //=======================================================================================
@@ -523,7 +551,7 @@ void loop() {
     display_star();
     //save_screen();
     setup_player(player);
-    test();
+    art_Map();
     display_menu();
     display_player(player);
   }
@@ -554,7 +582,6 @@ void loop() {
       tft.setTextColor(WHITE);
       tft.print("Game Over");
     }
-    tft.print("Game Over");
     if(digitalRead(27)) {
       testScreen = true;
     }
