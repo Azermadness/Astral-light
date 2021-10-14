@@ -458,46 +458,79 @@ void update_physics(Entity &player) {
   player.prevy = player.y;
 
   if(airborn) player.ay = 2;
-  
-  if(airborn && upPressed) player.ay = 1;
-  else player.ay = 2;
-
-  if(!airborn && upPressed) {
-    airborn = true;
-    player.speedy = 30;
-	}
 
 	if(downPressed) player.ay = 3;
   else player.ay = 2;
 
   player.ax = 0;
 
-	if(rightPressed) player.ax = 2;
-
-	if(leftPressed) player.ax = -2;
+  if(rightPressed) player.ax = 2;
+  if(rightPressed && player.speedx < 0) player.speedx = player.speedx + 2;
+  
+  if(leftPressed) player.ax = -2;
+  if(leftPressed && player.speedx > 0) player.speedx = player.speedx - 2;
 
   if(!(leftPressed || rightPressed)) player.speedx = player.speedx/2;
 
-  update_position(player);
+  update_xposition(player);
+  update_yposition(player);
 }
 
-void update_position(Entity &player) {
-  player.speedx = player.speedx + player.ax;
-  //player.speedy = player.speedy + player.ay;
+void update_xposition(Entity &player) {
+
+  if (player.speedx + player.ax > 10) {
+    player.ax = 0;
+    player.speedx = 10;
+  }
+  else if(player.speedx + player.ax < -10) {
+    player.ax = 0;
+    player.speedx = -10;
+  }
+  else player.speedx = player.speedx + player.ax;
+  
   if(player.x + player.speedx > SCREENWIDTH) {
-    player.speedx = 0;
+    player.speedx = -player.speedx;
     player.ax = 0;
-    player.x = SCREENWIDTH;
-  }
-  else if (player.x +player.speedx < 0) {
-    player.speedx = 0;
-    player.ax = 0;
-    player.x = 0;
-  }
-  else {
     player.x = player.x + player.speedx;
   }
-  //player.y = player.y + player.speedy;
+  else if (player.x +player.speedx < 0) {
+    player.speedx = -player.speedx;
+    player.ax = 0;
+    player.x = player.x + player.speedx;
+  }
+  else player.x = player.x + player.speedx;
+}
+
+void update_yposition(Entity &player) {
+  player.speedy = player.speedy + player.ay;
+  if(player.y + player.speedy > SCREENHEIGHT - 40 && !downPressed) {
+    player.speedy = -player.speedy*0.5;
+    player.y = SCREENHEIGHT - 40;
+    if(player.speedy < 5 && player.speedy > -5) {
+      airborn = false;
+    }
+  }
+  else if(player.y + player.speedy > SCREENHEIGHT - 40 && downPressed) {
+    player.speedy = 0;
+    player.y = SCREENHEIGHT - 40;
+    airborn = false;
+  }
+  else if(player.y + player.speedy < 0) {
+    player.speedy = -player.speedy*0.5;
+    player.y = 0;
+  }
+
+  if(!airborn) {
+    player.ax = 0;
+    player.speedy = 0;
+  }
+  
+  if(!airborn && upPressed) {
+    airborn = true;
+    player.speedy = -20;
+	}
+
+  player.y = player.y + player.speedy;
 }
 
 //=======================================================================================
