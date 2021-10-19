@@ -40,6 +40,7 @@
 #define LIME          0x5FA0
 #define LIGHTRED      0xFA49
 #define ORANGE        0xFC08
+#define REDF          0xF800
 
 #define SCORING1      0xFCC0
 #define SCORING2      0xFE60
@@ -50,6 +51,8 @@
 #define SCREENWIDTH 320 // Equivalent à tft.width()
 /* Largeur en pixel de l'écran */
 #define SCREENHEIGHT 240 // Equivalent à tft.height()
+// Taille d'une casse
+#define BOX_SIZE 20
 
 #define PSTARTX 50 // position de départ du joueur
 #define PSTARTY 50
@@ -63,6 +66,24 @@ ILI9341_due tft2 = ILI9341_due(TFT_CS, TFT_DC);
 
 int screenSave[200];
 int incr;
+int tabx;
+int taby;
+int nextRightWall;
+int nextLeftWall;
+int nextCeilling;
+int nextFloor;
+bool ground[12][16] = {
+  {false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false},
+  {false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false},
+  {false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false},
+  {false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false},
+  {false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false},
+  {false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false},
+  {false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false},
+  {false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false},
+  {false,false,false,false,false,false,false,false,false,true,false,false,false,false,false,false},
+  {true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true},
+};
 
 //controles
 
@@ -80,16 +101,17 @@ unsigned long timebuffer;
 unsigned long refresh = 100;
 unsigned long timePassed;
 bool testScreen;
+bool homeMenu;
 bool finished;
 bool physicsUpdated;
 bool airborn;
+bool done;
 
 //==========================================================================================
 
 //setup structures
 
 struct Entity {
-  	char type; // pacman = P ou ghost = G
   	double speedx; // vitesse horizontale
     double speedy; // vitesse verticale
     double x; // Coordonnée X actuelles
@@ -98,7 +120,6 @@ struct Entity {
     double prevy; // previous Y
     int ax; // accel horizontale
     int ay; // accel verticale
-  	char direc; // GAUCHE = G, Droite = D
   	int invincibility; // Pour le pacman: supérieur à 0 = invinsible. Pour le fantôme: supérieur à 0 = fuite
 };
 
@@ -106,42 +127,17 @@ struct Entity {
 
 // fonctions graphiques
 
-// ======== fonction coeur ==========
-
-int rEye = 8; // Rayon du du cercle des yeux
-int xEye = 8; // Décalage en x du des yeux par rapport au centre
-int yEye = 10; // Décalage en y du des yeux par rapport au centre
-int yNose = 32; // Décalage en y par rapport au centre
-int xNoseCorner = 4; // Décalage en x du coin du nez par rapport au haut du nez
-
-/* Coordonnées pour le bouton */
-int rButton = 24; // Rayon du bouton principal
-int rButton2 = 18; // Rayon de l'effet sur le bouton
-
-/* Coordonnées pour l'étoile */
-// Décalage par rapport au centre du carré
-// Décalage des différente coordonnées du triangle autour du carré
-int xDecaTriangle4_5 = 9*4;
-int yDecaTriangle4_5 = 9*4;
-
-void display_heart(int x, int y) {
-
-  tft.fillCircle(x+8, y+10, 10, BLACK);
-  tft.fillCircle(x-8, y+10, 10, BLACK);
-  tft.fillCircle(x+xEye, y+yEye, rEye, RED);
-  tft.fillCircle(x-xEye, y+yEye, rEye, RED);
-
-  tft.fillTriangle(x, y+36, x-18, y+12, x+18, y+12, BLACK);
-  tft.fillTriangle(x, y+yNose, x-16, y+10, x+16, y+10, RED);
+void art_heart(int x, int y, int color) {
+  tft.fillCircle(x+25, y-25, 30, color);
+  tft.fillCircle(x-25, y-25, 30, color);
+  tft.fillTriangle(x, y+50, x-51, y-10, x+51, y-10, color);
+  tft.fillCircle(x+14, y-9, 8, BLACK);
+  tft.fillCircle(x-14, y-9, 8, BLACK);
 }
-
-// fonction etoile
-#define REDF     0xF800
-
-void display_star() {
+void art_star() {
     for(int x=0; x < SCREENWIDTH; x=x+100) {
         for(int y=0; y < SCREENHEIGHT; y=y+100) {
-            
+            //TODO placer etoiles dans tableau
             tft.fillRect(x, y, 2, 2, WHITE);  //Carré d'un pixel
             tft.fillRect(x+20, y+14, 2, 2, WHITE);
             tft.fillRect(x+44, y+78, 2, 2, WHITE);
@@ -180,14 +176,10 @@ void display_star() {
         }
     }
 }
-
-// fonction bloc de terre
-void art_blockterre(int x, int y){
+void art_blockterre(int x, int y) {
     tft.fillRect(x, y, 20, 20, RED);
 }
-
-// fonction bloc de terre de surface
-void art_blocksurface(int x, int y){
+void art_blocksurface(int x, int y) {
     tft.fillRect(x, y, 20, 5, ORANGE);
     tft.fillRect(x, y+5, 20, 15, RED);
     tft.fillRect(x, y+5, 2, 1, ORANGE);
@@ -201,9 +193,7 @@ void art_blocksurface(int x, int y){
     tft.fillRect(x+17, y+3, 1, 1, RED);
 
 }
-
-// fonction boule de feu
-void art_fire(int x, int y){
+void art_fire(int x, int y) {
     y=y+10;
     tft.fillTriangle(x-8, y-5, x-8, y-14, x-2, y-9, RED); // point blanc
     tft.fillTriangle(x-7, y-11, x+2, y-8, x-1, y-18, RED); // point jaune
@@ -214,65 +204,186 @@ void art_fire(int x, int y){
     tft.fillCircle(x, y+4, 5, YELLOW); 
     
 }
-
-// fonction test boule de feu
-void art_Map(){
+void art_Map() {
     for(int i = 0; i<320; i=i+20){
-        if(i==180) {
-            art_blockterre(i, 220);
-            art_blocksurface(i, 200);
-        }
-        else {
-            art_blocksurface(i, 220);
-        }  
+        art_blocksurface(i, 220);              // Sol
+        if(i<240){
+            art_blocksurface(i, 60);           // Sol suspendu   
+        } 
     }
-    art_fire(100, 200);  
+
+    art_fire(280, 200); 
+    art_portail(10, 50); 
+    
+    art_blockterre(200, 220);                   //Escalier
+    art_blockterre(220, 220);
+    art_blockterre(240, 220);                 
+    art_blockterre(220, 200);
+    art_blockterre(240, 180);
+    art_blockterre(240, 200);
+
+    art_blocksurface(200, 200);
+    art_blocksurface(220, 180);
+    art_blocksurface(240, 160);
+
+    art_blockterre(0, 80);                     //Mur gauche
+    art_blockterre(0, 100);
+    art_blockterre(0, 120);
+    art_blockterre(0, 140);
+    art_blockterre(0, 160);
+    art_blockterre(0, 180);
+    art_blockterre(0, 200);
+    art_blockterre(0, 220);
+
+    art_blockterre(300, 140);                   //Mur droit
+    art_blockterre(300, 160);
+    art_blockterre(300, 180);
+    art_blockterre(300, 200);
+    art_blockterre(300, 220);
+    art_blocksurface(300, 120);
+}
+void art_portail(int x, int y) {
+    tft.fillCircle(x, y, 10, BLUE);
+
+    tft.fillRect(x-1, y-1, 2, 2, CYAN);
+    tft.fillRect(x, y-2, 1, 1, CYAN);
+    tft.fillRect(x-1, y-3, 1, 1, CYAN);
+    tft.fillRect(x-2, y-4, 1, 1, CYAN);
+    tft.fillRect(x-5, y-5, 3, 1, CYAN);
+    tft.fillRect(x-6, y-4, 1, 1, CYAN);
+    tft.fillRect(x-8, y-3, 2, 1, CYAN);
+    tft.fillRect(x-9, y-2, 1, 3, CYAN);
+    tft.fillRect(x-10, y+1, 1, 3, CYAN);
+
+    tft.fillRect(x-2, y-1, 1, 1, CYAN);
+    tft.fillRect(x-3, y, 1, 1, CYAN);
+    tft.fillRect(x-4, y+1, 1, 1, CYAN);
+    tft.fillRect(x-5, y+2, 1, 3, CYAN);
+    tft.fillRect(x-4, y+5, 1, 1, CYAN);
+    tft.fillRect(x-3, y+6, 1, 2, CYAN);
+    tft.fillRect(x-2, y+8, 3, 1, CYAN);
+    tft.fillRect(x+1, y+9, 3, 1, CYAN);
+
+    tft.fillRect(x-1, y+1, 1, 1, CYAN);
+    tft.fillRect(x, y+2, 1, 1, CYAN);
+    tft.fillRect(x+1, y+3, 1, 1, CYAN);
+    tft.fillRect(x+2, y+4, 3, 1, CYAN);
+    tft.fillRect(x+5, y+3, 1, 1, CYAN);
+    tft.fillRect(x+6, y+2, 2, 1, CYAN);
+    tft.fillRect(x+8, y-1, 1, 3, CYAN);
+    tft.fillRect(x+9, y-4, 1, 3, CYAN);
+
+    tft.fillRect(x+1, y, 1, 1, CYAN);
+    tft.fillRect(x+2, y-1, 1, 1, CYAN);
+    tft.fillRect(x+3, y-2, 1, 1, CYAN);
+    tft.fillRect(x+4, y-5, 1, 3, CYAN);
+    tft.fillRect(x+3, y-6, 1, 1, CYAN);
+    tft.fillRect(x+2, y-8, 1, 2, CYAN);
+    tft.fillRect(x-1, y-9, 3, 1, CYAN);
+    tft.fillRect(x-4, y-10, 3, 1, CYAN);
+}
+void display_playtest(int x,int y) {
+  tft.fillRect(x,y,20,40,WHITE);
+}
+void art_skull(int x, int y, int color) {
+  tft.fillCircle(x, y+5, 45, color);
+  tft.fillCircle(x, y+35, 30, color);
+  
+  tft.fillCircle(x+15, y+7, 9, BLACK);
+  tft.fillTriangle(x, y+25, x-7, y+32, x+7, y+32, BLACK);
+  tft.fillRect(x-7, y+33, 15, 4, BLACK);
+  tft.fillCircle(x-15, y+7, 9, BLACK);
+}
+void art_button(int x, int y, int color, int color2) {
+  tft.fillCircle(x, y, 24, color);
+  tft.fillCircle(x, y, 18, WHITE);
+  tft.fillCircle(x-1, y-1, 18, BLACK);
+  tft.fillCircle(x-1, y-1, 17, color2);
 }
 
-// fonction slime
+//fonctions affichage joueur
 
-void display_slime(int x,int y) {
-    tft.fillRect(x+1, y+ 1, 2, 2, BLUE) ;
-    tft.fillRect(x+2, y+ 2, 24, 2, BLUE) ;
-    tft.fillRect(x, y, 2, 6, BLUE) ;
-    tft.fillRect(x+1, y- 3, 2, 4, BLUE) ;
-    tft.fillRect(x+2, y- 5, 2, 2, BLUE) ;
-    tft.fillRect(x+3, y- 6, 2, 2, BLUE) ;
-    tft.fillRect(x+4, y- 7, 4, 2, BLUE) ;
-    tft.fillRect(x+6, y-8, 8, 2, BLUE) ;
-    tft.fillRect(x+10, y- 7, 4, 2, BLUE) ;
-    tft.fillRect(x+12, y- 6, 2, 2, BLUE) ;
-    tft.fillRect(x+13, y- 5, 2, 2, BLUE) ;
-    tft.fillRect(x+14, y- 4, 2, 4, BLUE) ;
-    tft.fillRect(x+15, y-2, 2, 6, BLUE) ;
-    tft.fillRect(x+14, y-3, 2, 2, BLUE) ;
-}
-
-// fonction carré refresh
 void last_square(Entity &player) {
-  tft.fillRect(player.prevx-20,player.prevy,38,38,BLACK);
+  tft.fillRect(player.prevx,player.prevy,20,40,BLACK);
 }
-
-// focntion affichage joueur
 void display_player(Entity &player) {
-  if(physicsUpdated) {
-    last_square(player);
-    display_heart(player.x,player.y);
-  }
+  last_square(player);
+  display_playtest(player.x,player.y);
 }
 
 // fonction affichage overlay
+
+void display_winMenu() {
+  int backColor = BLACK;
+  tft.fillScreen(backColor);
+  tft.setCursor(SCREENWIDTH/4, SCREENHEIGHT/8);
+  tft.setTextSize(4);
+  tft.setTextColor(WHITE);
+  tft.print("VICTORY");
+
+  art_heart(SCREENWIDTH/2, SCREENHEIGHT/2, ORANGE);
+  
+  tft.setTextSize(2);
+  tft.setCursor((SCREENWIDTH*0.3)/5, (SCREENHEIGHT*3)/5);
+  tft.print("REPLAY ?");
+
+  tft.setCursor((SCREENWIDTH*4.9)/7, (SCREENHEIGHT*3)/5);
+  tft.print("QUIT ?");
+
+  tft.setCursor((SCREENWIDTH*2.1)/5, (SCREENHEIGHT*3.1)/4);
+  tft.print("PRESS");
+
+  art_button(SCREENWIDTH/5, (SCREENHEIGHT*4)/5, GREEN, LIME);
+  art_button((SCREENWIDTH*4)/5, (SCREENHEIGHT*4)/5, RED, LIGHTRED);
+}
 void display_topMenu() {
+  tft.fillScreen(LIGHTGRAY);
+  display_life();
+  display_time();
+  display_score();
+}
+void display_multiMenu() {
+  int backColor = BLACK;
+  tft.fillScreen(backColor);
+  tft.setCursor(SCREENWIDTH/4, SCREENHEIGHT/8);//Peut-être à modifié
+  tft.setTextSize(4);
+  tft.setTextColor(WHITE);
+  tft.print("SETTING");
+  
+  tft.setTextSize(2);
+  tft.setCursor((SCREENWIDTH*0.65)/5, (SCREENHEIGHT*3)/5);
+  tft.print("SOLO");
+
+  tft.setCursor((SCREENWIDTH*4.9)/7, (SCREENHEIGHT*3)/5);
+  tft.print("VERSUS");
+
+  tft.setCursor((SCREENWIDTH*2.1)/5, (SCREENHEIGHT*3.1)/4);
+  tft.print("PRESS");
+
+  art_button(SCREENWIDTH/5  , (SCREENHEIGHT*4)/5, GREEN, LIME);
+  art_button((SCREENWIDTH*4)/5, (SCREENHEIGHT*4)/5, RED, LIGHTRED);
+}
+void display_homeMenu() {
+  int backColor = BLACK;
+  tft.fillScreen(backColor);
+  tft.setCursor(SCREENWIDTH/7, SCREENHEIGHT/8);//Peut-être à modifier
+  tft.setTextSize(4);
+  tft.setTextColor(WHITE);
+  tft.print("Nom du jeu");
+  
+  tft.setTextSize(2);
+
+  tft.setCursor((SCREENWIDTH*0.4)/7, (SCREENHEIGHT*3.4)/4);//A centrer
+  tft.print("PRESS THE");
+
+  tft.setCursor((SCREENWIDTH*4.3)/7, (SCREENHEIGHT*3.4)/4);//A centrer
+  tft.print("FOR START");
+
+  art_button(SCREENWIDTH/2, (SCREENHEIGHT*4.4)/5, GREEN, LIME);//A centrer
+}
+void display_topBar() {
   tft.fillRect(0, 0, SCREENWIDTH, 30, BLACK);
 }
-
-void display_hp(int x, int y, int backgroundColor) {
-  
-  tft.fillCircle(x+5, y+5, 6, backgroundColor);
-  tft.fillCircle(x-5, y+5, 6, backgroundColor);
-  tft.fillTriangle(x, y+18, x-11, y+5, x+11, y+5, backgroundColor);
-}
-
 void display_score() {
   tft.setTextSize(2);
   tft.setTextColor(WHITE);
@@ -283,14 +394,12 @@ void display_score() {
   tft.setCursor((SCREENHEIGHT*8)/8+50, (SCREENHEIGHT*0.2)/8);
   tft.print("10");
 }
-
 void display_life() {
-  display_hp((SCREENWIDTH*3.3)/8, (SCREENHEIGHT*0.1)/8, GREEN);
-  display_hp((SCREENWIDTH*4)/8, (SCREENHEIGHT*0.1)/8, RED);
-  display_hp((SCREENWIDTH*4.7)/8, (SCREENHEIGHT*0.1)/8, GREEN);
+  art_hp((SCREENWIDTH*3.3)/8, (SCREENHEIGHT*0.1)/8, GREEN);
+  art_hp((SCREENWIDTH*4)/8, (SCREENHEIGHT*0.1)/8, RED);
+  art_hp((SCREENWIDTH*4.7)/8, (SCREENHEIGHT*0.1)/8, GREEN);
 }
-
-void display_time() {
+void display_time() {  
   tft.setTextSize(2);
   tft.setTextColor(WHITE);
   
@@ -300,12 +409,16 @@ void display_time() {
   tft.setCursor((SCREENHEIGHT*0.1)/8, (SCREENHEIGHT*0.2)/8);
   tft.print("00:01:01");
 }
-
 void display_menu() {
-  display_topMenu();
+  display_topBar();
   display_life();
   display_time();
   display_score();
+}
+void art_hp(int x, int y, int backgroundColor) { 
+  tft.fillCircle(x+5, y+5, 6, backgroundColor);
+  tft.fillCircle(x-5, y+5, 6, backgroundColor);
+  tft.fillTriangle(x, y+18, x-11, y+5, x+11, y+5, backgroundColor);
 }
 
 //==========================================================================================
@@ -386,6 +499,7 @@ void display_menu() {
   }
 }*/
 
+//fonctions physiques
 void buttons_update() {
   //test down pressed
   if (digitalRead(28) || digitalRead(24)) {
@@ -430,7 +544,6 @@ void buttons_update() {
     greenPressed = false;
   }
 }
-
 void setup_player(Entity &player) {
   player.x = PSTARTX;
   player.y = PSTARTY;
@@ -442,17 +555,6 @@ void setup_player(Entity &player) {
   player.ay = 0;
   physicsUpdated = true;
 }
-
-/*bool x_lim(Entity e) {
-	if(e.direc == 'D' && e.x >= SCREENWIDTH -5) {
-		return true;
-	}
-	if(e.direc == 'G' && e.y <= 5) {
-		return true;
-	}
-	return false;
-}*/
-
 void update_physics(Entity &player) {
   player.prevx = player.x;
   player.prevy = player.y;
@@ -472,10 +574,10 @@ void update_physics(Entity &player) {
 
   if(!(leftPressed || rightPressed)) player.speedx = player.speedx/2;
 
+  next_walls(player);
   update_xposition(player);
   update_yposition(player);
 }
-
 void update_xposition(Entity &player) {
 
   if (player.speedx + player.ax > 10) {
@@ -488,7 +590,7 @@ void update_xposition(Entity &player) {
   }
   else player.speedx = player.speedx + player.ax;
   
-  if(player.x + player.speedx > SCREENWIDTH) {
+  if(player.x + player.speedx > SCREENWIDTH-20) {
     player.speedx = -player.speedx;
     player.ax = 0;
     player.x = player.x + player.speedx;
@@ -500,12 +602,14 @@ void update_xposition(Entity &player) {
   }
   else player.x = player.x + player.speedx;
 }
-
 void update_yposition(Entity &player) {
   player.speedy = player.speedy + player.ay;
   if(player.y + player.speedy > SCREENHEIGHT - 40 && !downPressed) {
     player.speedy = -player.speedy*0.5;
     player.y = SCREENHEIGHT - 40;
+    if(upPressed) {
+      airborn = false;
+    }
     if(player.speedy < 5 && player.speedy > -5) {
       airborn = false;
     }
@@ -532,6 +636,22 @@ void update_yposition(Entity &player) {
 
   player.y = player.y + player.speedy;
 }
+void next_walls(Entity &player) {
+  tabx = player.prevx;
+  taby = player.prevy;
+  nextRightWall = tabx/20;
+  nextLeftWall = tabx/20;
+  nextCeilling = taby/20;
+  nextFloor = taby/20;
+  
+  //TODO
+
+  Serial.println(nextRightWall);
+  Serial.println(nextLeftWall);
+  Serial.println(nextFloor);
+  Serial.println(nextCeilling);
+  
+}
 
 //=======================================================================================
 
@@ -543,8 +663,9 @@ struct Entity player;
 
 void setup() {
 
-  //variable pour demmarage testscreen
+  //variable pour demmarage
   testScreen = true;
+  homeMenu = true;
 
 	//setup du compteur de temps
 	timebuffer = millis();
@@ -574,6 +695,18 @@ void loop() {
 	//condition de départ boucles test
 	finished = false;
 
+  done = false;
+  while(!homeMenu) {
+    if(!done) {
+      done = true;
+      delay(100);
+      display_multiMenu();
+    }
+    if(digitalRead(27)) {
+      homeMenu = true;
+    }
+  }
+
 	//setup differents test
 	if(testScreen == true) {
     tft.fillScreen(BLACK);
@@ -581,7 +714,7 @@ void loop() {
     tft.setTextColor(WHITE);
 		testScreen = false;
     airborn = true;
-    display_star();
+    art_star();
     //save_screen();
     setup_player(player);
     art_Map();
@@ -596,6 +729,7 @@ void loop() {
     //boucle pour répeter une action tout les x millisecondes
     if(timePassed > refresh) {  
       buttons_update();
+      next_walls(player);
       update_physics(player);
       //print_save(0,0,320,220);
       display_player(player);
@@ -605,7 +739,7 @@ void loop() {
 		timebuffer = millis();
     } 
   }
-  bool done = false;
+  done = false;
   while(!testScreen) {
     if(!done) {
       done = true;
