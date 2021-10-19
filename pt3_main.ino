@@ -80,9 +80,9 @@ bool ground[12][16] = {
   {false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false},
   {false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false},
   {false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false},
-  {false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false},
   {false,false,false,false,false,false,false,false,false,true,false,false,false,false,false,false},
-  {true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true},
+  {false,false,false,false,false,false,false,false,false,true,false,false,false,false,false,false},
+  {true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true}
 };
 
 //controles
@@ -100,8 +100,9 @@ bool greenPressed;
 unsigned long timebuffer;
 unsigned long refresh = 100;
 unsigned long timePassed;
-bool testScreen;
+bool gameSetup;
 bool homeMenu;
+bool multiMenu;
 bool finished;
 bool physicsUpdated;
 bool airborn;
@@ -191,7 +192,6 @@ void art_blocksurface(int x, int y) {
     tft.fillRect(x+14, y+5, 1, 1, ORANGE);
     tft.fillRect(x+17, y+4, 2, 1, RED);
     tft.fillRect(x+17, y+3, 1, 1, RED);
-
 }
 void art_fire(int x, int y) {
     y=y+10;
@@ -202,7 +202,6 @@ void art_fire(int x, int y) {
     tft.fillCircle(x, y, 9, RED);
     tft.fillCircle(x, y+3, 8, ORANGE);
     tft.fillCircle(x, y+4, 5, YELLOW); 
-    
 }
 void art_Map() {
     for(int i = 0; i<320; i=i+20){
@@ -664,7 +663,6 @@ struct Entity player;
 void setup() {
 
   //variable pour demmarage
-  testScreen = true;
   homeMenu = true;
 
 	//setup du compteur de temps
@@ -684,7 +682,6 @@ void setup() {
 	pinMode(27, INPUT); // Bouton START (vert)
 	pinMode(26, INPUT); // Bouton SELECT (rouge)
 	pinMode(32, OUTPUT); // Haut-parleur
-  
 }
 
 //===========================================================================================
@@ -692,34 +689,51 @@ void setup() {
 
 void loop() {
 
-	//condition de départ boucles test
-	finished = false;
-
   done = false;
-  while(!homeMenu) {
+  while(homeMenu) {
     if(!done) {
       done = true;
-      delay(100);
-      display_multiMenu();
+      display_homeMenu();
     }
     if(digitalRead(27)) {
-      homeMenu = true;
+      homeMenu = false;
+      multiMenu = true;
     }
   }
 
-	//setup differents test
-	if(testScreen == true) {
+  done = false;
+  while(multiMenu) {
+    if(!done) {
+      done = true;
+      display_multiMenu();
+    }
+    if(digitalRead(27)) {
+      multiMenu = false;
+      gameSetup = true;
+    }
+  }
+  
+
+	//setup jeu
+	if(gameSetup == true) {
+
+    //setup graphique
     tft.fillScreen(BLACK);
     tft.setTextSize(4);
     tft.setTextColor(WHITE);
-		testScreen = false;
-    airborn = true;
     art_star();
-    //save_screen();
-    setup_player(player);
     art_Map();
     display_menu();
+
+    //setup player
+    setup_player(player);
     display_player(player);
+    player.speedx = 10;
+
+    //setup booleens
+    finished = false;
+    gameSetup = false;
+    airborn = true;
   }
 
   // Tant que start n'a pas été appuyé
@@ -736,11 +750,12 @@ void loop() {
       if(digitalRead(27)) {
         finished = true;
       }
-		timebuffer = millis();
+		  timebuffer = millis();
     } 
   }
+
   done = false;
-  while(!testScreen) {
+  while(!gameSetup) {
     if(!done) {
       done = true;
       tft.fillScreen(BLACK);
@@ -750,7 +765,7 @@ void loop() {
       tft.print("Game Over");
     }
     if(digitalRead(27)) {
-      testScreen = true;
+      gameSetup = true;
     }
   }
 }
