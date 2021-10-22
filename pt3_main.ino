@@ -53,6 +53,7 @@
 #define SCREENHEIGHT 240 // Equivalent à tft.height()
 // Taille d'une casse
 #define BOX_SIZE 20
+#define PLAYER_HEIGHT 40
 #define MAP_COLS 16
 #define MAP_ROWS 12
 
@@ -69,7 +70,9 @@ ILI9341_due tft2 = ILI9341_due(TFT_CS, TFT_DC);
 int screenSave[200];
 int incr;
 int tabx;
+int tabx2;
 int taby;
+int taby2;
 int nextRightWall;
 int nextLeftWall;
 int nextCeilling;
@@ -193,11 +196,11 @@ void art_star(int color) {
     }
 }
 void art_blockterre(int x, int y) {
-    tft.fillRect(x, y, 20, 20, RED);
+    tft.fillRect(x, y, BOX_SIZE, BOX_SIZE, RED);
 }
 void art_blocksurface(int x, int y) {
-    tft.fillRect(x, y, 20, 5, ORANGE);
-    tft.fillRect(x, y+5, 20, 15, RED);
+    tft.fillRect(x, y, BOX_SIZE, 5, ORANGE);
+    tft.fillRect(x, y+5, BOX_SIZE, 15, RED);
     tft.fillRect(x, y+5, 2, 1, ORANGE);
     tft.fillRect(x, y+6, 1, 1, ORANGE);
     tft.fillRect(x+4, y+4, 2, 1, RED);
@@ -219,18 +222,18 @@ void art_fire(int x, int y) {
     tft.fillCircle(x, y+4, 5, YELLOW); 
 }
 void art_Map() {
-    for(int i = 0; i<320; i=i+20){
-        art_blocksurface(i, 220);              // Sol
+    for(int i = 0; i<SCREENWIDTH; i=i+BOX_SIZE){
+        art_blocksurface(i, 11*BOX_SIZE);              // Sol
     }
-    art_blocksurface(0, 160);                  // escalier
-    art_blockterre(0, 200);
-    art_blockterre(0, 180);
-    art_blockterre(0, 220);
-    art_blocksurface(20, 200);                 
-    art_blockterre(20, 220);
+    art_blocksurface(0, 8*BOX_SIZE);                  // escalier
+    art_blockterre(0, 10*BOX_SIZE);
+    art_blockterre(0, 9*BOX_SIZE);
+    art_blockterre(0, 11*BOX_SIZE);
+    art_blocksurface(BOX_SIZE, 10*BOX_SIZE);                 
+    art_blockterre(BOX_SIZE, 11*BOX_SIZE);
 
-    art_blocksurface(160, 200);                 // petit Mur
-    art_blockterre(160, 220);
+    art_blocksurface(8*BOX_SIZE, 10*BOX_SIZE);                 // petit Mur
+    art_blockterre(8*BOX_SIZE, 11*BOX_SIZE);
 }
 void art_portail(int x, int y) {
     tft.fillCircle(x, y, 10, BLUE);
@@ -273,7 +276,7 @@ void art_portail(int x, int y) {
     tft.fillRect(x-4, y-10, 3, 1, CYAN);
 }
 void art_player(int x,int y) {
-  tft.fillRect(x+1,y+10,19,19,MAGENTA);
+  tft.fillRect(x+1,y+10,BOX_SIZE-1,BOX_SIZE-1,MAGENTA);
   tft.fillCircle(x+10,y+30,9,MAGENTA);
   tft.fillCircle(x+10,y+10,9,MAGENTA);
 }
@@ -296,14 +299,14 @@ void art_slime(double x,double y) {
   if(slime.state == true) {
     tft.fillCircle(x+10,y+10,9,CYAN);
   }
-  else tft.fillCircle((int) x+10,(int) y+10,9,GREEN);
+  else tft.fillCircle(x+10,y+10,9,GREEN);
 }
 
 //fonctions affichage joueur
 
 void last_square() {
-  tft.fillRect(slime.prevx,slime.prevy,20,20,BLACK);
-  tft.fillRect(player.prevx,player.prevy,20,40,BLACK);
+  tft.fillRect(slime.prevx,slime.prevy,BOX_SIZE,BOX_SIZE,BLACK);
+  tft.fillRect(player.prevx,player.prevy,BOX_SIZE,PLAYER_HEIGHT,BLACK);
 }
 void display_player() {
   art_player(player.x,player.y);
@@ -634,7 +637,7 @@ void update_slime(Entity &slime) {
     slime.ax = 0;
     slime.speedx = slime.speedx/2;
   }
-  if (slime.x + slime.speedx > slime.rlimit-20) {
+  if (slime.x + slime.speedx > slime.rlimit-BOX_SIZE) {
     slime.ax = 0;
     slime.speedx = -slime.speedx*0.5;
     slime.x = slime.rlimit-BOX_SIZE;
@@ -681,9 +684,9 @@ void update_xposition(Entity &player) {
 }
 void update_yposition(Entity &player) {
   player.speedy = player.speedy + player.ay;
-  if(player.y + player.speedy > nextFloor - 2*BOX_SIZE && !downPressed) {
+  if(player.y + player.speedy > nextFloor - PLAYER_HEIGHT && !downPressed) {
     player.speedy = -player.speedy*0.5;
-    player.y = nextFloor - 2*BOX_SIZE;
+    player.y = nextFloor - PLAYER_HEIGHT;
     if(upPressed) {
       airborn = false;
     }
@@ -691,9 +694,9 @@ void update_yposition(Entity &player) {
       airborn = false;
     }
   }
-  else if(player.y + player.speedy > nextFloor - 2*BOX_SIZE && downPressed) {
+  else if(player.y + player.speedy > nextFloor - PLAYER_HEIGHT && downPressed) {
     player.speedy = 0;
-    player.y = nextFloor - 2*BOX_SIZE;
+    player.y = nextFloor - PLAYER_HEIGHT;
     airborn = false;
   }
   else if(player.y + player.speedy < 0) {
@@ -701,7 +704,7 @@ void update_yposition(Entity &player) {
     player.y = 0;
   }
 
-  if(nextFloor - player.y > 2*BOX_SIZE + 5) {
+  if(nextFloor - player.y > PLAYER_HEIGHT + 5) {
     airborn = true;
   }
 
@@ -719,73 +722,52 @@ void update_yposition(Entity &player) {
     player.speedy = 18;
   }
 
-  if(nextFloor - player.y > 2*BOX_SIZE + 5) {
+  if(nextFloor - player.y > PLAYER_HEIGHT + 5) {
     airborn = true;
   }
   
   player.y = player.y + player.speedy;
 }
 void next_walls(Entity &player) {
-  tabx = player.prevx/20;
-  taby = player.prevy/20;
+  tabx = player.prevx/BOX_SIZE;
+  tabx2 = (player.prevx+BOX_SIZE-1) /BOX_SIZE;
+  taby = player.prevy/BOX_SIZE;
+  taby2 = (player.prevy+PLAYER_HEIGHT-1)/BOX_SIZE;
   nextRightWall = SCREENWIDTH;
   nextLeftWall = 0;
   nextCeilling = 0;
-  nextFloor = SCREENHEIGHT -20;
-
-  // adaptation au cas ou on est près du sol
-  bool nearGround;
-  if(nextFloor - player.y < 60) {
-    nearGround = true;
-  }
-  else {
-    nearGround = false;
-  }
+  nextFloor = SCREENHEIGHT - BOX_SIZE;
 
   // boucle mur droit
   for(int i = tabx + 1;i < MAP_COLS;i++) {
-    if(airborn && !nearGround) {
-      if(ground[taby][i] == true || ground[taby+2][i] == true) {
-        nextRightWall = i * 20;
-        break;
-      }
-    }
-    if(ground[taby][i] == true || ground[taby+1][i] == true) {
-      nextRightWall = i * 20;
+    if(ground[taby][i] == true || ground[taby2][i] == true) {
+      nextRightWall = i * BOX_SIZE;
       break;
     }
   }
   // boucle sol
   for(int i = taby + 1;i < MAP_ROWS;i++) {
-    if(ground[i][tabx] == true || ground[i][tabx + 1] == true) {
-      nextFloor = i * 20;
+    if(ground[i][tabx] == true || ground[i][tabx2] == true) {
+      nextFloor = i * BOX_SIZE;
       break;
     }
   }
   // boucle mur gauche
   for(int j = 0;j < tabx;j++) {
-    if(airborn) {
-      if(ground[taby][j] == true || ground[taby+2][j] == true) {
-        nextLeftWall = j * 20 + 20;
-      }
-    }
-    else {
-      if(ground[taby][j] == true || ground[taby+1][j] == true) {
-        nextLeftWall = j * 20 + 20;
-      }
+    if(ground[taby][j] == true || ground[taby2][j] == true) {
+      nextLeftWall = (j+1) * BOX_SIZE;
     }
   }
   // plafond
   for(int j = 0;j < tabx;j++) {
-    if(ground[j][tabx] == true || ground[j][tabx + 1] == true) {
-      nextCeilling = j * 20 + 20;
+    if(ground[j][tabx] == true || ground[j][tabx2] == true) {
+      nextCeilling = (j+1) * BOX_SIZE;
     }
   }
 
-  Serial.println(nextRightWall);
-  Serial.println(nextLeftWall);
-  tft.fillRect(0,nextFloor,SCREENWIDTH,3,BLUE);
-  tft.fillRect(0,nextCeilling,SCREENHEIGHT,-3,WHITE);
+  //tft.fillRect(0,nextFloor,SCREENWIDTH,1,BLUE);
+  //tft.fillRect(0,nextCeilling,SCREENHEIGHT,-1,WHITE);
+
 }
 
 //=======================================================================================
@@ -848,8 +830,6 @@ void loop() {
 
     //setup graphique
     tft.fillScreen(BLACK);
-    tft.setTextSize(4);
-    tft.setTextColor(WHITE);
     art_star(WHITE);
     art_Map();
     display_menu();
@@ -859,7 +839,6 @@ void loop() {
     display_player();
     setup_slime(slime,12,10,9,16);
     display_slime();
-    player.speedx = 20;
 
     //setup booleens
     finished = false;
