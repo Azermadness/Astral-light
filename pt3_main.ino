@@ -136,13 +136,35 @@ struct Entity {
     int llimit;         // limite utilisées pour les collisions
     int rlimit;         //
 };
+struct Party {
+  int partyTimeMil;
+  int partyTimeSec;
+  int partyTimeMin;
+};
 
 //init structures
 
 struct Entity player;
 struct Entity slime;
+struct Party party;
 
 //==========================================================================================
+
+// fonctions logiques
+
+void timeCalculation(Party &party) {
+  if (party.partyTimeMil < 9) {
+    party.partyTimeMil++;
+  } else {
+    party.partyTimeMil = 0;
+    if (party.partyTimeSec < 59) {
+      party.partyTimeSec++;
+    } else {
+      party.partyTimeSec = 0;
+      party.partyTimeMin++;
+    }
+  }
+}
 
 // fonctions graphiques
 
@@ -427,15 +449,26 @@ void display_life() {
   art_hp((SCREENWIDTH*4)/8, (SCREENHEIGHT*0.1)/8, RED);
   art_hp((SCREENWIDTH*4.7)/8, (SCREENHEIGHT*0.1)/8, RED);
 }
-void display_time() {  
+void display_time() {
+
   tft.setTextSize(2);
-  tft.setTextColor(WHITE);
-  
-  //tft.setCursor((SCREENHEIGHT*0.1)/8, (SCREENHEIGHT*0.2)/8);
-  //tft.print("TIME: ");
-  
+  tft.setTextColor(BLACK);
   tft.setCursor((SCREENHEIGHT*0.1)/8, (SCREENHEIGHT*0.2)/8);
-  tft.print("00:01:01");
+  tft.print(party.partyTimeMin);
+  tft.print(":");
+  tft.print(party.partyTimeSec);
+  tft.print(":");
+  tft.print(party.partyTimeMil);
+
+  timeCalculation(party);
+
+  tft.setTextColor(WHITE);
+  tft.setCursor((SCREENHEIGHT*0.1)/8, (SCREENHEIGHT*0.2)/8);
+  tft.print(party.partyTimeMin);
+  tft.print(":");
+  tft.print(party.partyTimeSec);
+  tft.print(":");
+  tft.print(party.partyTimeMil);
 }
 void display_menu() {
   display_topBar();
@@ -796,8 +829,7 @@ void setup() {
 	pinMode(32, OUTPUT); // Haut-parleur
 }
 
-//===========================================================================================
-
+//===========================================================================================s
 
 void loop() {
 
@@ -832,7 +864,12 @@ void loop() {
     tft.fillScreen(BLACK);
     art_star(WHITE);
     art_Map();
+
+    //setup logique
     display_menu();
+    party.partyTimeMil = 0;
+    party.partyTimeMin = 0;
+    party.partyTimeSec = 0;
 
     //setup entités
     setup_player(player);
@@ -859,6 +896,7 @@ void loop() {
       last_square();
       display_player();
       display_slime();
+      display_time();
       if(digitalRead(27)) {
         finished = true;
         endScreen = true;
