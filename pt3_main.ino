@@ -46,6 +46,13 @@
 #define SCORING2      0xFE60
 #define HIGHLIGHT     0xE71C
 
+#define PORTALA       0x07DF
+#define PORTALB       0x2D1F
+#define PORTALC       0x52DF
+#define PORTALD       0xA93F
+#define PORTALE       0xF81F
+
+
 /* ------------------------------- */
 /* Longueur en pixel de l'écran */
 #define SCREENWIDTH 320 // Equivalent à tft.width()
@@ -57,8 +64,8 @@
 #define MAP_COLS 16
 #define MAP_ROWS 12
 
-#define PSTARTX 50 // position de départ du joueur
-#define PSTARTY 50
+#define PSTARTX 30 // position de départ du joueur
+#define PSTARTY 150
 
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 ILI9341_due tft2 = ILI9341_due(TFT_CS, TFT_DC);
@@ -97,14 +104,14 @@ int ground_Salle1[MAP_ROWS][MAP_COLS] = {
   {0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 },
   {15, 13, 14, 12, 10, 15, 10, 13, 10, 14, 10, 13, 11, 15, 10, 13},
   {10, 12, 11, 10, 14, 10, 12, 15, 11, 13, 12, 15, 14, 10, 12, 14},
-  {4 , 10, 10, 13, 11, 14, 10, 10, 10, 12, 10, 14, 12, 10, 11, 13},
-  {2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 14, 12, 15, 11},
+  {5 , 10, 10, 13, 11, 14, 10, 10, 10, 12, 10, 14, 12, 10, 11, 13},
+  {2 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 14, 12, 15, 11},
   {1 , 13, 14, 11, 12, 10, 15, 10, 11, 10, 13, 12, 11, 10, 14, 10},
   {1 , 10, 15, 10, 13, 10, 11, 10, 13, 11, 14, 15, 10, 12, 11, 2 },
   {1 , 14, 12, 11, 10, 13, 15, 14, 12, 10, 13, 10, 14, 15, 13, 1 },
   {1 , 11, 13, 10, 15, 12, 10, 12, 10, 15, 11, 10, 2 , 10, 11, 1 },
   {1 , 12, 10, 11, 14, 10, 15, 13, 11, 12, 14, 2 , 1 , 12, 11, 1 },
-  {1 , 15, 14, 15, 13, 11, 10, 15, 10, 10, 2 , 1 , 1 , 3 , 3 , 1 },
+  {1 , 15, 14, 15, 13, 11, 10, 15, 10, 10, 2 , 1 , 1 , 4 , 4 , 1 },
   {1 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 1 , 1 , 2 , 2 , 1 },
 };
 
@@ -154,6 +161,7 @@ struct Entity {
     int llimit;         // limites utilisées pour les collisions
     int rlimit;         //
     bool direction;     // true = droite / false = gauche
+    bool prevDirection; // orientation du joueur 1 frame en arrière
 };
 struct Party {
   int partyTimeMil;
@@ -222,121 +230,90 @@ void art_starbg(int color) {
 }
 void art_star(int x,int y) {
   if (ground_Salle1[y][x] == 10) {
-    tft.fillRect(x*BOX_SIZE,y*BOX_SIZE, 2, 2, WHITE);
-    tft.fillRect(x*BOX_SIZE+12,y*BOX_SIZE+8, 2, 2, WHITE);
-
-    tft.fillRect(x*BOX_SIZE+15,y*BOX_SIZE, 3, 3, WHITE);
-
-    tft.fillRect(x*BOX_SIZE+4,y*BOX_SIZE+15, 6, 2, WHITE);   //Croix 
-    tft.fillRect(x*BOX_SIZE+6,y*BOX_SIZE+12, 2, 8, WHITE);
+    tft.fillRect(x*BOX_SIZE+12, y*BOX_SIZE+8, 2, 2, WHITE);
+    tft.fillRect(x*BOX_SIZE+4, y*BOX_SIZE+15, 6, 2, WHITE); 
+    tft.fillRect(x*BOX_SIZE+6, y*BOX_SIZE+12, 2, 8, WHITE);
   }
   else if (ground_Salle1[y][x] == 11) {
-    tft.fillRect(x*BOX_SIZE+15,y*BOX_SIZE, 2, 2, WHITE);
-
-    tft.fillRect(x*BOX_SIZE+1,y*BOX_SIZE, 3, 3, WHITE);
-    tft.fillRect(x*BOX_SIZE+6,y*BOX_SIZE+12, 3, 3, WHITE);
+    tft.fillRect(x*BOX_SIZE+15, y*BOX_SIZE, 2, 2, WHITE);
   }
   else if (ground_Salle1[y][x] == 12) {
-    tft.fillRect(x*BOX_SIZE+13,y*BOX_SIZE+1, 2, 2, WHITE);
-    tft.fillRect(x*BOX_SIZE+18,y*BOX_SIZE+18, 2, 2, WHITE);
-
-    tft.fillRect(x*BOX_SIZE,y*BOX_SIZE+4, 3, 3, WHITE);
-
-    tft.fillRect(x*BOX_SIZE+8,y*BOX_SIZE+11, 6, 2, WHITE);   //Croix 
-    tft.fillRect(x*BOX_SIZE+10,y*BOX_SIZE+8, 2, 8, WHITE);
+    tft.fillRect(x*BOX_SIZE+13, y*BOX_SIZE+1, 2, 2, WHITE);
+    tft.fillRect(x*BOX_SIZE, y*BOX_SIZE+4, 3, 3, WHITE);
   }
   else if (ground_Salle1[y][x] == 13) {
-    tft.fillRect(x*BOX_SIZE+5,y*BOX_SIZE+3, 2, 2, WHITE);
-    tft.fillRect(x*BOX_SIZE+4,y*BOX_SIZE+14, 2, 2, WHITE);
-
-    tft.fillRect(x*BOX_SIZE+12,y*BOX_SIZE+10, 3, 3, WHITE);
+    tft.fillRect(x*BOX_SIZE+5, y*BOX_SIZE+3, 2, 2, WHITE);
+    tft.fillRect(x*BOX_SIZE+4, y*BOX_SIZE+14, 2, 2, WHITE);
   }
   else if (ground_Salle1[y][x] == 14) {
-    tft.fillRect(x*BOX_SIZE+3,y*BOX_SIZE+14, 2, 2, WHITE);
-
-    tft.fillRect(x*BOX_SIZE+12,y*BOX_SIZE+5, 6, 2, WHITE);   //Croix 
-    tft.fillRect(x*BOX_SIZE+14,y*BOX_SIZE+2, 2, 8, WHITE);
+    tft.fillRect(x*BOX_SIZE+12, y*BOX_SIZE+5, 6, 2, WHITE);
+    tft.fillRect(x*BOX_SIZE+14, y*BOX_SIZE+2, 2, 8, WHITE);
   }
   else if (ground_Salle1[y][x] == 15) {
-    tft.fillRect(x*BOX_SIZE+13,y*BOX_SIZE+2, 2, 2, WHITE);
-    tft.fillRect(x*BOX_SIZE+14,y*BOX_SIZE+17, 2, 2, WHITE);
-
-    tft.fillRect(x*BOX_SIZE+7,y*BOX_SIZE+7, 3, 3, WHITE);
+    tft.fillRect(x*BOX_SIZE+13, y*BOX_SIZE+2, 2, 2, WHITE);
+    tft.fillRect(x*BOX_SIZE+7, y*BOX_SIZE+7, 3, 3, WHITE);
   }
 }
-void art_blockterre(int x, int y) {
-    tft.fillRect(x, y, BOX_SIZE, BOX_SIZE, RED);
+void art_blockterre(int x, int y){
+    tft.fillRect(x, y, BOX_SIZE, BOX_SIZE, MAGENTA);
 }
-void art_blocksurface(int x, int y) {
-    tft.fillRect(x, y, BOX_SIZE, 5, ORANGE);
-    tft.fillRect(x, y+5, BOX_SIZE, 15, RED);
-    tft.fillRect(x, y+5, 2, 1, ORANGE);
-    tft.fillRect(x, y+6, 1, 1, ORANGE);
-    tft.fillRect(x+4, y+4, 2, 1, RED);
-    tft.fillRect(x+7, y+5, 1, 1, ORANGE);
-    tft.fillRect(x+9, y+4, 1, 1, RED);
-    tft.fillRect(x+12, y+4, 1, 1, RED);
-    tft.fillRect(x+14, y+5, 1, 1, ORANGE);
-    tft.fillRect(x+17, y+4, 2, 1, RED);
-    tft.fillRect(x+17, y+3, 1, 1, RED);
+void art_blocksurface(int x, int y){
+    tft.fillRect(x, y, 20, 4, GREEN);
+    tft.fillRect(x, y+4, 20, 16, MAGENTA);
+    tft.fillRect(x+1, y-3, 1, 9, GREEN);
+    tft.fillRect(x+4, y-1, 1, 7, GREEN);
+    tft.fillRect(x+5, y-3, 1, 10, GREEN);
+    tft.fillRect(x+7, y-2, 1, 7, GREEN);
+    tft.fillRect(x+10, y-1, 1, 6, GREEN);
+    tft.fillRect(x+11, y-3, 1, 9, GREEN);
+    tft.fillRect(x+14, y-1, 1, 7, GREEN);
+    tft.fillRect(x+15, y-2, 2, 7, GREEN);
+    tft.fillRect(x+19, y-2, 1, 7, GREEN);
+}
+void art_blockplateforme(int x, int y){
+    tft.fillRect(x, y, 20, 4, GREEN);
+    tft.fillRect(x, y+4, 20, 16, MAGENTA);
+    
+    tft.fillRect(x+1, y-3, 1, 9, GREEN);
+    tft.fillRect(x+4, y-1, 1, 7, GREEN);
+    tft.fillRect(x+5, y-3, 1, 10, GREEN);
+    tft.fillRect(x+7, y-2, 1, 7, GREEN);
+    tft.fillRect(x+10, y-1, 1, 6, GREEN);
+    tft.fillRect(x+11, y-3, 1, 9, GREEN);
+    tft.fillRect(x+14, y-1, 1, 7, GREEN);
+    tft.fillRect(x+15, y-2, 2, 7, GREEN);
+    tft.fillRect(x+19, y-2, 1, 7, GREEN);
+
+    tft.fillTriangle(x, y+18, x, y+19, x+2, y+19, BLACK);
+    tft.fillTriangle(x+5, y+19, x+7, y+16, x+9, y+19, BLACK);
+    tft.fillTriangle(x+12, y+19, x+13, y+16, x+14, y+19, BLACK);
+    tft.fillTriangle(x+17, y+19, x+19, y+17, x+19, y+19, BLACK);
 }
 void art_fire(int x, int y) {
-    y=y+10;
-    tft.fillTriangle(x-8, y-5, x-8, y-14, x-2, y-9, RED); // point blanc
-    tft.fillTriangle(x-7, y-11, x+2, y-8, x-1, y-18, RED); // point jaune
-    tft.fillTriangle(x, y-8, x+4, y-9, x+4, y-22, RED); // point bleu f
-    tft.fillTriangle(x+4, y-8, x+8, y-13, x+8, y-6, RED); // point bleu c
-    tft.fillCircle(x, y, 9, RED);
-    tft.fillCircle(x, y+3, 8, ORANGE);
-    tft.fillCircle(x, y+4, 5, YELLOW); 
+    tft.fillTriangle(x+2, y+5, x+2, y-4, x+8, y+1, BLUE); // point blanc
+    tft.fillTriangle(x+3, y-1, x+12, y+2, x+9, y-8, BLUE); // point jaune
+    tft.fillTriangle(x+10, y+2, x+14, y+1, x+14, y-12, BLUE); // point bleu f
+    tft.fillTriangle(x+14, y+10, x+18, y-3, x+18, y-4, BLUE); // point bleu c
+    tft.fillCircle(x+10, y+10, 9, BLUE);
+    tft.fillCircle(x+10, y+13, 8, GREEN);
+    tft.fillCircle(x+10, y+14, 5, CYAN);
 }
 void art_map(int x,int y) {
   if (ground_Salle1[y][x] == 1) art_blockterre(x*BOX_SIZE, y*BOX_SIZE); 
   else if (ground_Salle1[y][x] == 2) art_blocksurface(x*BOX_SIZE, y*BOX_SIZE);
-  else if (ground_Salle1[y][x] == 3) art_fire(x*BOX_SIZE, y*BOX_SIZE);
-  else if (ground_Salle1[y][x] == 4) art_portail(x*BOX_SIZE, y*BOX_SIZE);
+  else if (ground_Salle1[y][x] == 3) art_blockplateforme(x*BOX_SIZE, y*BOX_SIZE);
+  else if (ground_Salle1[y][x] == 4) art_fire(x*BOX_SIZE, y*BOX_SIZE);
+  else if (ground_Salle1[y][x] == 5) art_portal(x*BOX_SIZE,y*BOX_SIZE);
   else art_star(x, y);
 }
-void art_portail(int x, int y) {
-    tft.fillCircle(x, y, 10, BLUE);
-
-    tft.fillRect(x-1, y-1, 2, 2, CYAN);
-    tft.fillRect(x, y-2, 1, 1, CYAN);
-    tft.fillRect(x-1, y-3, 1, 1, CYAN);
-    tft.fillRect(x-2, y-4, 1, 1, CYAN);
-    tft.fillRect(x-5, y-5, 3, 1, CYAN);
-    tft.fillRect(x-6, y-4, 1, 1, CYAN);
-    tft.fillRect(x-8, y-3, 2, 1, CYAN);
-    tft.fillRect(x-9, y-2, 1, 3, CYAN);
-    tft.fillRect(x-10, y+1, 1, 3, CYAN);
-
-    tft.fillRect(x-2, y-1, 1, 1, CYAN);
-    tft.fillRect(x-3, y, 1, 1, CYAN);
-    tft.fillRect(x-4, y+1, 1, 1, CYAN);
-    tft.fillRect(x-5, y+2, 1, 3, CYAN);
-    tft.fillRect(x-4, y+5, 1, 1, CYAN);
-    tft.fillRect(x-3, y+6, 1, 2, CYAN);
-    tft.fillRect(x-2, y+8, 3, 1, CYAN);
-    tft.fillRect(x+1, y+9, 3, 1, CYAN);
-
-    tft.fillRect(x-1, y+1, 1, 1, CYAN);
-    tft.fillRect(x, y+2, 1, 1, CYAN);
-    tft.fillRect(x+1, y+3, 1, 1, CYAN);
-    tft.fillRect(x+2, y+4, 3, 1, CYAN);
-    tft.fillRect(x+5, y+3, 1, 1, CYAN);
-    tft.fillRect(x+6, y+2, 2, 1, CYAN);
-    tft.fillRect(x+8, y-1, 1, 3, CYAN);
-    tft.fillRect(x+9, y-4, 1, 3, CYAN);
-
-    tft.fillRect(x+1, y, 1, 1, CYAN);
-    tft.fillRect(x+2, y-1, 1, 1, CYAN);
-    tft.fillRect(x+3, y-2, 1, 1, CYAN);
-    tft.fillRect(x+4, y-5, 1, 3, CYAN);
-    tft.fillRect(x+3, y-6, 1, 1, CYAN);
-    tft.fillRect(x+2, y-8, 1, 2, CYAN);
-    tft.fillRect(x-1, y-9, 3, 1, CYAN);
-    tft.fillRect(x-4, y-10, 3, 1, CYAN);
-}
+void art_portal (int x, int y){
+  tft.fillCircle(x+10, y+9, 9, PORTALE);
+  tft.fillCircle(x+10, y+7, 7, PORTALD);
+  tft.fillCircle(x+10, y+5, 5, PORTALC);
+  tft.fillCircle(x+10, y+3, 3, PORTALB);
+  tft.fillCircle(x+10, y+1, 1, PORTALA);
+  tft.drawCircle(x+10, y+10, 9.9, WHITE);
+} 
 void art_skull(int x, int y, int color) {
   tft.fillCircle(x, y+5, 45, color);
   tft.fillCircle(x, y+35, 30, color);
@@ -512,11 +489,6 @@ void art_shieldd(int x, int y) {
 }
 void art_persog(int x, int y) {
 
-  //Ombres noir
-  tft.fillRect(x+10, y+22, 6, 18, BLACK);
-  tft.fillTriangle(x+15, y+39, x+17, y+37, x+15, y+33, BLACK);
-  tft.fillTriangle(x+6, y+30, x+4, y+39, x+9, y+38, BLACK);
-
   //Robe partie gauche
   tft.fillTriangle(x+19, y+36, x+15, y+30, x+17, y+38, BROWN);
   tft.fillTriangle(x+13, y+30, x+15, y+30, x+17, y+38, BROWN);
@@ -556,11 +528,6 @@ void art_persog(int x, int y) {
   tft.fillRect(x+11, y+28, 1, 1, CYAN);
 }
 void art_persod(int x, int y) {
-
-  //Ombres noir
-  tft.fillRect(x+5, y+22, 6, 18, BLACK);
-  tft.fillTriangle(x+5, y+39, x+3, y+37, x+5, y+33, BLACK);
-  tft.fillTriangle(x+14, y+30, x+16, y+39, x+11, y+38, BLACK);
 
   //Robe partie gauche
   tft.fillTriangle(x, y+36, x+5, y+30, x+3, y+38, BROWN);
@@ -651,13 +618,132 @@ void art_slimed(int x, int y, int color, int color2) {
   tft.fillTriangle(x+17, y+6, x+18, y+8, x+19, y+4, LIGHTGRAY);
   
 }
+void art_persog_shadow(int x, int y) {
 
+  tft.fillRect(x+10, y+22, 6, 18, BLACK);
+
+  //Robe partie gauche
+  tft.fillTriangle(x+19, y+36, x+15, y+30, x+17, y+38, BLACK);
+  tft.fillTriangle(x+13, y+30, x+15, y+30, x+17, y+38, BLACK);
+  tft.fillRect(x+13, y+20, 3, 10, BLACK);
+
+  //Robe partie droite
+  tft.fillTriangle(x+16, y+39, x+11, y+34, x+10, y+39, BLACK);
+  tft.fillTriangle(x+6, y+34, x+11, y+34, x+10, y+39, BLACK);
+  tft.fillTriangle(x+10, y+25, x+8, y+28, x+11, y+34, BLACK);
+  tft.fillTriangle(x+4, y+22, x+6, y+34, x+11, y+34, BLACK);
+  tft.fillTriangle(x+4, y+22, x+12, y+22, x+8, y+28, BLACK);
+  tft.fillTriangle(x+6, y+30, x+4, y+39, x+2, y+39, BLACK);
+  tft.fillTriangle(x+6, y+30, x+4, y+22, x+2, y+39, BLACK);
+
+  //Robe haut
+  tft.fillRect(x+5, y+16, 8, 6, BLACK);
+  tft.fillTriangle(x+6, y+30, x+4, y+22, x+2, y+39, BLACK);
+  tft.fillCircle(x+6, y+16, 1, BLACK);
+
+  tft.fillCircle(x+11, y+17, 5, BLACK);
+
+  //Tête
+  tft.fillCircle(x+12, y+8, 4, BLACK);
+  tft.fillRect(x+9, y+4, 3, 4, BLACK);
+  tft.fillCircle(x+9, y+8, 4, BLACK);
+  tft.fillCircle(x+8, y+8, 3, BLACK);
+}
+void art_persod_shadow(int x, int y) {
+
+  tft.fillRect(x+5, y+22, 6, 18, BLACK);
+  //Robe partie gauche
+  tft.fillTriangle(x, y+36, x+5, y+30, x+3, y+38, BLACK);
+  tft.fillTriangle(x+7, y+30, x+5, y+30, x+3, y+38, BLACK);
+  tft.fillRect(x+5, y+20, 3, 10, BLACK);
+
+  //Robe partie droite
+  tft.fillTriangle(x+4, y+39, x+9, y+34, x+10, y+39, BLACK);
+  tft.fillTriangle(x+14, y+34, x+9, y+34, x+10, y+39, BLACK);
+  tft.fillTriangle(x+10, y+25, x+12, y+28, x+9, y+34, BLACK);
+  tft.fillTriangle(x+16, y+22, x+14, y+34, x+9, y+34, BLACK);
+  tft.fillTriangle(x+16, y+22, x+8, y+22, x+12, y+28, BLACK);
+  tft.fillTriangle(x+14, y+30, x+16, y+39, x+18, y+39, BLACK);
+  tft.fillTriangle(x+14, y+30, x+16, y+22, x+18, y+39, BLACK);
+
+  //Robe haut
+  tft.fillRect(x+8, y+16, 8, 6, BLACK);
+  tft.fillTriangle(x+14, y+30, x+16, y+22, x+18, y+39, BLACK);
+  tft.fillCircle(x+14, y+16, 1, BLACK);
+
+  tft.fillCircle(x+9, y+17, 5, BLACK);
+
+  //Tête
+  tft.fillCircle(x+8, y+8, 4, BLACK);
+  tft.fillRect(x+8, y+4, 3, 4, BLACK);
+  tft.fillCircle(x+11, y+8, 4, BLACK);
+  tft.fillCircle(x+12, y+8, 3, BLACK);
+  
+}
+void art_slimeg_shadow(int x, int y) {
+
+  //Base du corps
+  tft.fillCircle(x+9, y+9, 9, BLACK);
+
+  //Yeux
+  tft.fillRect(x+5, y+5, 2, 5, BLACK);
+
+  //Pics en bas
+  tft.fillTriangle(x+6, y+15, x+2, y+19, x+14, y+18, BLACK);
+  tft.fillTriangle(x+10, y+14, x+14, y+19, x+6, y+19, BLACK);
+  tft.fillTriangle(x+17, y+19, x+14, y+15, x+6, y+16, BLACK);
+
+  //Pics en haut
+  tft.fillTriangle(x+18, y+2, x+17, y+6, x+16, y, BLACK);
+  tft.fillTriangle(x+17, y-3, x+17, y+4, x+11, y+2, BLACK);
+  tft.fillTriangle(x+13, y-4, x+15, y+2, x+10, y+1, BLACK);
+  tft.fillTriangle(x+7, y-5, x+9, y+1, x+2, y+2, BLACK);
+  tft.fillTriangle(x+12, y+1, x+10, y-4, x+6, y+1, BLACK);
+  tft.fillTriangle(x+1, y-2, x+1, y+5, x+5, y+3, BLACK);
+  tft.fillTriangle(x+3, y+6, x+2, y+8, x, y+4, BLACK);
+  
+}
+void art_slimed_shadow(int x, int y) {
+
+  //Base du corps
+  tft.fillCircle(x+10, y+9, 9.9, BLACK);
+
+  //Yeux
+  tft.fillRect(x+14, y+5, 2, 5, BLACK);
+
+  //Pics en bas
+  tft.fillTriangle(x+14, y+15, x+18, y+19, x+6, y+18, BLACK);
+  tft.fillTriangle(x+10, y+14, x+6, y+19, x+14, y+19, BLACK);
+  tft.fillTriangle(x+3, y+19, x+6, y+15, x+14, y+16, BLACK);
+
+  //Pics en haut
+  tft.fillTriangle(x, y+2, x+3, y+6, x+4, y, BLACK);
+  tft.fillTriangle(x+3, y-3, x+3, y+4, x+9, y+2, BLACK);
+  tft.fillTriangle(x+7, y-4, x+5, y+2, x+10, y+1, BLACK);
+  tft.fillTriangle(x+13, y-5, x+11, y+1, x+18, y+2, BLACK);
+  tft.fillTriangle(x+8, y+1, x+10, y-4, x+14, y+1, BLACK);
+  tft.fillTriangle(x+19, y-2, x+19, y+5, x+15, y+3, BLACK);
+  tft.fillTriangle(x+17, y+6, x+18, y+8, x+19, y+4, BLACK);
+  
+}
 //fonctions affichage entités
 
 void last_square() {
 
-  tft.fillRect(slime.prevx,slime.prevy-BOX_SIZE/2,BOX_SIZE,BOX_SIZE +10,BLACK);
-  tft.fillRect(player.prevx,player.prevy,BOX_SIZE,PLAYER_HEIGHT,BLACK);
+  if(player.prevDirection) {
+    art_persod_shadow(player.prevx,player.prevy);
+  }
+  else {
+    art_persog_shadow(player.prevx,player.prevy);
+  }
+
+  if (slime.prevDirection) {
+    art_slimed_shadow(slime.prevx,slime.prevy);
+  }
+  else {
+    art_slimeg_shadow(slime.prevx,slime.prevy);
+  }
+  
 
   // refresh graphique perso
   int x = player.prevx/BOX_SIZE;
@@ -832,27 +918,28 @@ void display_life() {
   art_hp((SCREENWIDTH*4.7)/8, (SCREENHEIGHT*0.1)/8, RED);
 }
 void display_time() {
+  int mil = party.partyTimeMil;
+  int sec = party.partyTimeMin;
+  int min = party.partyTimeSec;
 
-  tft.setTextSize(2);
-  tft.setTextColor(BLACK);
+  timeCalculation(party);
+
+  if (min != party.partyTimeMin) {
+    tft.setTextColor(BLACK);
+    tft.setCursor((SCREENHEIGHT*0.1)/8, (SCREENHEIGHT*0.2)/8);
+    tft.print(min);
+    tft.setTextColor(WHITE);
+    tft.setCursor((SCREENHEIGHT*0.1)/8, (SCREENHEIGHT*0.2)/8);
+    tft.print(party.partyTimeMin);
+  }
+  //TODO
+  tft.setTextColor(WHITE);
   tft.setCursor((SCREENHEIGHT*0.1)/8, (SCREENHEIGHT*0.2)/8);
   tft.print(party.partyTimeMin);
   tft.print(":");
   tft.print(party.partyTimeSec);
   tft.print(":");
   tft.print(party.partyTimeMil);
-
-  if(!finished) {
-    timeCalculation(party);
-
-    tft.setTextColor(WHITE);
-    tft.setCursor((SCREENHEIGHT*0.1)/8, (SCREENHEIGHT*0.2)/8);
-    tft.print(party.partyTimeMin);
-    tft.print(":");
-    tft.print(party.partyTimeSec);
-    tft.print(":");
-    tft.print(party.partyTimeMil);
-  }
 }
 void display_menu() {
   display_topBar();
@@ -972,6 +1059,8 @@ void setup_slime(Entity &slime,int originx,int originy,int leftLimit,int rightLi
 void update_physics(Entity &player) {
   player.prevx = player.x;
   player.prevy = player.y;
+  player.prevDirection = player.direction;
+  slime.prevDirection = slime.direction;
 
   if(airborn) player.ay = 2;
 
@@ -1107,7 +1196,7 @@ void next_walls(Entity &player) {
   taby3 = (player.prevy + PLAYER_HEIGHT-1)/BOX_SIZE;
   nextRightWall = SCREENWIDTH;
   nextLeftWall = 0;
-  nextCeilling = 0;
+  nextCeilling = 30; //décalage depuis le haut de l'écran pour considérer la barre de menu
   nextFloor = SCREENHEIGHT - BOX_SIZE;
 
   // boucle mur droit
@@ -1278,7 +1367,12 @@ void loop() {
       display_slime();
       display_time();
       if(slimeCollide) {
-        tft.fillRect(player.x,player.y,BOX_SIZE,PLAYER_HEIGHT,BLACK); // recouvrement du perso lorsqu'il respawn
+        if(player.direction) {
+          art_persod_shadow(player.x,player.y);
+        }
+        else {
+          art_persog_shadow(player.x,player.y);
+        }                                                 // recouvrement du perso lorsqu'il respawn
         life_sub();
         setup_player(player);
       }
