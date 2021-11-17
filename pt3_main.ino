@@ -230,28 +230,28 @@ void art_starbg(int color) {
 }
 void art_star(int x,int y) {
   if (ground_Salle1[y][x] == 10) {
-    tft.fillRect(x*BOX_SIZE+12, y*BOX_SIZE+8, 2, 2, WHITE);
-    tft.fillRect(x*BOX_SIZE+4, y*BOX_SIZE+15, 6, 2, WHITE); 
-    tft.fillRect(x*BOX_SIZE+6, y*BOX_SIZE+12, 2, 8, WHITE);
+    tft.fillRect(x*BOX_SIZE+12, y*BOX_SIZE+8, 2, 2, VERYLIGHTGRAY);
+    tft.fillRect(x*BOX_SIZE+4, y*BOX_SIZE+15, 6, 2, VERYLIGHTGRAY); 
+    tft.fillRect(x*BOX_SIZE+6, y*BOX_SIZE+12, 2, 8, VERYLIGHTGRAY);
   }
   else if (ground_Salle1[y][x] == 11) {
-    tft.fillRect(x*BOX_SIZE+15, y*BOX_SIZE, 2, 2, WHITE);
+    tft.fillRect(x*BOX_SIZE+15, y*BOX_SIZE, 2, 2, VERYLIGHTGRAY);
   }
   else if (ground_Salle1[y][x] == 12) {
-    tft.fillRect(x*BOX_SIZE+13, y*BOX_SIZE+1, 2, 2, WHITE);
-    tft.fillRect(x*BOX_SIZE, y*BOX_SIZE+4, 3, 3, WHITE);
+    tft.fillRect(x*BOX_SIZE+13, y*BOX_SIZE+1, 2, 2, VERYLIGHTGRAY);
+    tft.fillRect(x*BOX_SIZE, y*BOX_SIZE+4, 3, 3, VERYLIGHTGRAY);
   }
   else if (ground_Salle1[y][x] == 13) {
-    tft.fillRect(x*BOX_SIZE+5, y*BOX_SIZE+3, 2, 2, WHITE);
-    tft.fillRect(x*BOX_SIZE+4, y*BOX_SIZE+14, 2, 2, WHITE);
+    tft.fillRect(x*BOX_SIZE+5, y*BOX_SIZE+3, 2, 2, VERYLIGHTGRAY);
+    tft.fillRect(x*BOX_SIZE+4, y*BOX_SIZE+14, 2, 2, VERYLIGHTGRAY);
   }
   else if (ground_Salle1[y][x] == 14) {
-    tft.fillRect(x*BOX_SIZE+12, y*BOX_SIZE+5, 6, 2, WHITE);
-    tft.fillRect(x*BOX_SIZE+14, y*BOX_SIZE+2, 2, 8, WHITE);
+    tft.fillRect(x*BOX_SIZE+12, y*BOX_SIZE+5, 6, 2, VERYLIGHTGRAY);
+    tft.fillRect(x*BOX_SIZE+14, y*BOX_SIZE+2, 2, 8, VERYLIGHTGRAY);
   }
   else if (ground_Salle1[y][x] == 15) {
-    tft.fillRect(x*BOX_SIZE+13, y*BOX_SIZE+2, 2, 2, WHITE);
-    tft.fillRect(x*BOX_SIZE+7, y*BOX_SIZE+7, 3, 3, WHITE);
+    tft.fillRect(x*BOX_SIZE+13, y*BOX_SIZE+2, 2, 2, VERYLIGHTGRAY);
+    tft.fillRect(x*BOX_SIZE+7, y*BOX_SIZE+7, 3, 3, VERYLIGHTGRAY);
   }
 }
 void art_blockterre(int x, int y){
@@ -782,7 +782,7 @@ void display_loseMenu() {
 }
 void display_topMenu() {
   display_life();
-  display_time();
+  timeCalculation(party);
   display_score();
 }
 void display_multiMenu() {
@@ -826,72 +826,24 @@ void display_homeMenu() {
   art_button(SCREENWIDTH/2, (SCREENHEIGHT*4.4)/5, GREEN, LIME);//A centrer
 }
 void display_topBar() {
-  tft.fillRect(0, 0, SCREENWIDTH, 30, BLACK);
+  tft.fillRect(0, 0, SCREENWIDTH, 20, BLACK);
 }
 void display_score() {
   tft.setTextSize(2);
   tft.setTextColor(WHITE);
   
   tft.setCursor((SCREENHEIGHT*7.2)/8, (SCREENHEIGHT*0.2)/8);
-  tft.print("SCORE: ");
-  
-  tft.setCursor((SCREENHEIGHT*8)/8+50, (SCREENHEIGHT*0.2)/8);
-  tft.print("10");
+  tft.print("SCORE:");
+  tft.print("??");
 }
 void display_life() {
   art_hp((SCREENWIDTH*3.3)/8, (SCREENHEIGHT*0.1)/8, RED);
   art_hp((SCREENWIDTH*4)/8, (SCREENHEIGHT*0.1)/8, RED);
   art_hp((SCREENWIDTH*4.7)/8, (SCREENHEIGHT*0.1)/8, RED);
 }
-void display_time() {
-  int mil = party.partyTimeMil;
-  int sec = party.partyTimeMin;
-  int min = party.partyTimeSec;
-
-  timeCalculation(party);
-
-  if (min != party.partyTimeMin) {
-
-    tft.setTextColor(BLACK);
-    tft.setCursor(10, (SCREENHEIGHT*0.2)/8);
-    tft.print(min);
-    tft.setTextColor(WHITE);
-    tft.setCursor(10, (SCREENHEIGHT*0.2)/8);
-    tft.print(party.partyTimeMin);
-  }
-  
-  if(sec != party.partyTimeSec) {
-
-    tft.setTextColor(BLACK);
-    tft.setCursor(25, (SCREENHEIGHT*0.2)/8);
-    if(sec < 10) {
-      tft.print("0");
-      tft.print(sec);
-    }
-    else tft.print(sec);
-
-    tft.setTextColor(WHITE);
-    tft.setCursor(25, (SCREENHEIGHT*0.2)/8);
-    if(party.partyTimeSec < 10) {
-      tft.print("0");
-      tft.print(party.partyTimeSec);
-    }
-    else tft.print(party.partyTimeSec);
-  }
-
-  tft.setTextColor(BLACK);
-  tft.setCursor(50, (SCREENHEIGHT*0.2)/8);
-  tft.print("0");
-  tft.print(mil);
-  tft.setTextColor(WHITE);
-  tft.setCursor(50, (SCREENHEIGHT*0.2)/8);
-  tft.print("0");
-  tft.print(party.partyTimeMil);
-}
 void display_menu() {
   display_topBar();
   display_life();
-  tft.fillRect((SCREENHEIGHT*0.1)/8, (SCREENHEIGHT*0.2)/8,5*BOX_SIZE,BOX_SIZE,BLACK); // clear barre temps
   display_score();
 }
 void display_map() {
@@ -906,29 +858,6 @@ void art_hp(int x, int y, int backgroundColor) {
   tft.fillCircle(x-5, y+5, 6, backgroundColor);
   tft.fillTriangle(x, y+18, x-11, y+5, x+11, y+5, backgroundColor);
 }
-
-/*void save_screen() {
-  incr = 0;
-  for(int i = 15;i < (SCREENHEIGHT-20)/2;i++) {
-    for(int j = 0;j < SCREENWIDTH/2;j++) {
-      if(tft2.readPixel(i*2,j*2) == WHITE) {
-        screenSave[incr] = i;
-        screenSave[incr+1] = j;
-        incr = incr+2;
-        Serial.println(screenSave[incr]);
-        Serial.println(screenSave[incr+1]);
-      }
-    }
-  }
-}*/
-
-/*void print_save(int x,int y,int x1,int y1) {
-  for(int i = 0;i < 100;i++) {
-    if(screenSave[i]<x1 && screenSave[i]>x && screenSave[i+1]>y && screenSave[i+1]<y1) {
-      tft.drawPixel(screenSave[i],screenSave[i+1],WHITE);
-    }
-  }
-}*/
 
 //fonctions physiques
 
@@ -1031,13 +960,21 @@ void update_physics(Entity &player) {
 void update_slime(Entity &slime) {
   slime.prevx = slime.x;
   slime.prevy = slime.y;
-  if(player.x > slime.x - BOX_SIZE*3 && player.x <= slime.x) {
-    slime.state = true;
-    slime.ax = -1;
-  }
-  else if(player.x < slime.x + BOX_SIZE*3 && player.x > slime.x) {
-    slime.state = true;
-    slime.ax = 1;
+
+  if(player.y > slime.y - BOX_SIZE*4 + 10 && player.y < slime.y + 40) {
+    if(player.x > slime.x - BOX_SIZE*3 && player.x <= slime.x) {
+      slime.state = true;
+      slime.ax = -1;
+    }
+    else if(player.x < slime.x + BOX_SIZE*3 && player.x > slime.x) {
+      slime.state = true;
+      slime.ax = 1;
+    }
+    else {
+    slime.state = false;
+    slime.ax = 0;
+    slime.speedx = slime.speedx/2;
+    }
   }
   else {
     slime.state = false;
@@ -1046,12 +983,12 @@ void update_slime(Entity &slime) {
   }
   if (slime.x + slime.speedx > slime.rlimit-BOX_SIZE) {
     slime.ax = 0;
-    slime.speedx = -slime.speedx*0.5;
+    slime.speedx = -slime.speedx/2;
     slime.x = slime.rlimit-BOX_SIZE;
   }
   else if (slime.x + slime.speedx < slime.llimit+1) {
     slime.ax = 0;
-    slime.speedx = -slime.speedx*0.5;
+    slime.speedx = -slime.speedx/2;
     slime.x = slime.llimit+1;
   }
   else {
@@ -1092,7 +1029,7 @@ void update_xposition(Entity &player) {
 void update_yposition(Entity &player) {
   player.speedy = player.speedy + player.ay;
   if(player.y + player.speedy > nextFloor - PLAYER_HEIGHT && !downPressed) {
-    player.speedy = -player.speedy*0.5;
+    player.speedy = -player.speedy/2;
     player.y = nextFloor - PLAYER_HEIGHT;
     if(upPressed) {
       airborn = false;
@@ -1107,7 +1044,7 @@ void update_yposition(Entity &player) {
     airborn = false;
   }
   else if(player.y + player.speedy < nextCeilling) {
-    player.speedy = -player.speedy*0.5;
+    player.speedy = -player.speedy/2;
     player.y = nextCeilling;
   }
 
@@ -1143,7 +1080,7 @@ void next_walls(Entity &player) {
   taby3 = (player.prevy + PLAYER_HEIGHT-1)/BOX_SIZE;
   nextRightWall = SCREENWIDTH;
   nextLeftWall = 0;
-  nextCeilling = 30; //décalage depuis le haut de l'écran pour considérer la barre de menu
+  nextCeilling = BOX_SIZE; //décalage depuis le haut de l'écran pour considérer la barre de menu
   nextFloor = SCREENHEIGHT - BOX_SIZE;
 
   // boucle mur droit
@@ -1173,30 +1110,82 @@ void next_walls(Entity &player) {
     }
   }
 
-  //tft.fillRect(0,nextFloor,SCREENWIDTH,1,BLUE);
+  //tft.fillRect(0,nextFloor,SCREENWIDTH,1,BLUE);           // affichage test collisions
   //tft.fillRect(0,nextCeilling,SCREENWIDTH,-1,WHITE);
 }
 
 // fonctions logiques
 
 void timeCalculation(Party &party) {
-  if (party.partyTimeMil < 9) {
-    party.partyTimeMil++;
-  } else {
-    party.partyTimeMil = 0;
-    if (party.partyTimeSec < 59) {
-      party.partyTimeSec++;
-    } else {
-      party.partyTimeSec = 0;
-      party.partyTimeMin++;
-    }
+
+  int mil = party.partyTimeMil;
+  int sec = party.partyTimeSec;
+  int min = party.partyTimeMin;
+
+  party.partyTimeMil++;
+  if(gameSetup) {
+    party.partyTimeMil--;
+    tft.setCursor(10, (SCREENHEIGHT*0.2)/8);
+    tft.print("00");
+    tft.setTextColor(WHITE);
+    tft.setCursor(31,(SCREENHEIGHT*0.2)/8);
+    tft.print(":");
+    tft.setCursor(40, (SCREENHEIGHT*0.2)/8);
+    tft.print("00");
+    tft.setCursor(61,(SCREENHEIGHT*0.2)/8);
+    tft.print(":");
+    tft.setCursor(70, (SCREENHEIGHT*0.2)/8);
+    tft.print("00");
   }
+
+  if (party.partyTimeMil > 9) {
+
+    party.partyTimeSec++;
+    party.partyTimeMil = 0;
+
+    if (party.partyTimeSec > 59) {
+      party.partyTimeMin++;
+      party.partyTimeSec = 0;
+      tft.setTextColor(BLACK);
+      tft.setCursor(10, (SCREENHEIGHT*0.2)/8);
+      tft.print("0");
+      tft.print(min);
+      tft.setTextColor(WHITE);
+      tft.setCursor(10, (SCREENHEIGHT*0.2)/8);
+      tft.print("0");
+      tft.print(party.partyTimeMin);
+    }
+
+    tft.setTextColor(BLACK);
+    tft.setCursor(40, (SCREENHEIGHT*0.2)/8);
+    if(sec < 10) {
+      tft.print("0");
+      tft.print(sec);
+    }
+    else tft.print(sec);
+    tft.setTextColor(WHITE);
+    tft.setCursor(40, (SCREENHEIGHT*0.2)/8);
+    if(party.partyTimeSec < 10) {
+      tft.print("0");
+      tft.print(party.partyTimeSec);
+    }
+    else tft.print(party.partyTimeSec);
+  }
+
+  tft.setTextColor(BLACK);
+  tft.setCursor(70, (SCREENHEIGHT*0.2)/8);
+  tft.print("0");
+  tft.print(mil);
+  tft.setTextColor(WHITE);
+  tft.setCursor(70, (SCREENHEIGHT*0.2)/8);
+  tft.print("0");
+  tft.print(party.partyTimeMil);
 }
 void coll_slime(Entity &player,Entity &slime) {
 
   int diffx = player.x - slime.x;
   int diffy = player.y - slime.y;
-  if((diffx < 20 && diffx > -20) && (diffy < 20 && diffy > -40)) {
+  if((diffx < BOX_SIZE && diffx > -BOX_SIZE) && (diffy < BOX_SIZE && diffy > -2*BOX_SIZE)) {
     slimeCollide = true;
   }
   else {
@@ -1285,11 +1274,12 @@ void loop() {
     party.partyTimeMil = 0;
     party.partyTimeMin = 0;
     party.partyTimeSec = 0;
+    timeCalculation(party);
 
     //setup entités
     setup_player(player);
     display_player();
-    setup_slime(slime,3,10,3,10);
+    setup_slime(slime,3,10,3,10);     // setup slime n : arg1 , origine x : arg2 , origine y : arg3 , limites murs : arg3 et arg4
     display_slime();
 
     //setup booleens
@@ -1312,7 +1302,7 @@ void loop() {
       last_square();
       display_player();
       display_slime();
-      display_time();
+      timeCalculation(party);
       if(slimeCollide) {
         if(player.direction) {
           art_persod_shadow(player.x,player.y);
