@@ -58,14 +58,10 @@
 #define SCREENWIDTH 320 // Equivalent à tft.width()
 /* Largeur en pixel de l'écran */
 #define SCREENHEIGHT 240 // Equivalent à tft.height()
-// Taille d'une casse
-#define BOX_SIZE 20
+#define BOX_SIZE 20      // Taille d'une casse
 #define PLAYER_HEIGHT 40
 #define MAP_COLS 16
 #define MAP_ROWS 12
-
-#define PSTARTX 30 // position de départ du joueur
-#define PSTARTY 150
 
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 ILI9341_due tft2 = ILI9341_due(TFT_CS, TFT_DC);
@@ -74,7 +70,7 @@ ILI9341_due tft2 = ILI9341_due(TFT_CS, TFT_DC);
 
 //setup variables
 
-int screenSave[200];
+int mapNumber;
 int incr;
 int tabx;
 int tabx2;
@@ -86,33 +82,91 @@ int nextLeftWall;
 int nextCeilling;
 int nextFloor;
 int lifeCount;
-bool ground[MAP_ROWS][MAP_COLS] = {
-  {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false},
-  {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false},
-  {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false},
-  {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false},
-  {true , true , true , true , true , true , true , true , true , true , true , true , false, false, false, false},
-  {true , false, false, false, false, false, false, false, false, false, false, false, false, false, false, false},
-  {true , false, false, false, false, false, false, false, false, false, false, false, false, false, false, true },
-  {true , false, false, false, false, false, false, false, false, false, false, false, false, false, false, true },
-  {true , false, false, false, false, false, false, false, false, false, false, false, true , false, false, true },
-  {true , false, false, false, false, false, false, false, false, false, false, true , true , false, false, true },
-  {true , false, false, false, false, false, false, false, false, false, true , true , true , false, false, true },
-  {true , true , true , true , true , true , true , true , true , true , true , true , true , true , true , true },
+int pstartx[3] = {30,30,30};
+int pstarty[3] = {150,150,150};
+bool ground[3][MAP_ROWS][MAP_COLS] = {
+  {
+    {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false},
+    {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false},
+    {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false},
+    {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false},
+    {true , true , true , true , true , true , true , true , true , true , true , true , false, false, false, false},
+    {true , false, false, false, false, false, false, false, false, false, false, false, false, false, false, false},
+    {true , false, false, false, false, false, false, false, false, false, false, false, false, false, false, true },
+    {true , false, false, false, false, false, false, false, false, false, false, false, false, false, false, true },
+    {true , false, false, false, false, false, false, false, false, false, false, false, true , false, false, true },
+    {true , false, false, false, false, false, false, false, false, false, false, true , true , false, false, true },
+    {true , true , true , false, false, false, false, false, false, false, true , true , true , false, false, true },
+    {true , true , true , true , true , true , true , true , true , true , true , true , true , true , true , true },
+  },{
+    {true , false, false, false, false, false, false, false, false, false, false, false, false, false, false, false},
+    {true , false, false, false, false, false, false, false, false, false, false, false, false, false, false, false},
+    {true , true , true , true , true , true , true , true , true , true , true , true , true , true , false, false},
+    {true , false, false, false, false, false, false, false, false, false, false, false, false, false, false, false},
+    {true , false, false, false, false, false, false, false, false, false, false, false, false, false, false, false},
+    {true , false, true , false, false, false, false, false, false, false, false, false, true , false, false, false},
+    {true , false, true , true , true , true , true , true , true , true , true , true , true , false, false, false},
+    {true , false, false, false, false, false, false, false, false, false, false, false, true , true , true , true },
+    {true , false, false, false, false, false, false, false, false, false, false, false, true , false, false, true },
+    {true , false, false, false, false, false, false, false, false, false, false, false, false, false, false, true },
+    {true , false, false, false, false, false, false, false, false, false, false, false, false, false, false, true },
+    {true , false, false, true , true , true , true , true , true , true , true , true , true , true , true , true },
+  },{
+    {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true },
+    {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true },
+    {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true },
+    {false, false, false, true , true , true , true , true , true , true , true , true , false, false, true , true },
+    {false, false, false, false, false, false, false, false, false, false, false, true , false, false, false, true },
+    {false, false, false, false, false, false, false, false, false, false, false, true , true , false, false, true },
+    {false, false, false, false, false, false, false, false, false, false, false, true , false, false, false, true },
+    {false, false, false, false, false, false, false, false, false, false, false, true , false, false, true , true },
+    {true , true , true , true , true , true , true , false, false, false, false, true , false, false, false, true },
+    {true , false, false, false, false, false, false, false, false, false, false, true , true , false, false, true },
+    {true , false, false, false, false, false, false, false, false, false, false, true , false, false, false, true },
+    {true , true , true , true , true , true , true , true , true , true , true , true , true , true , true , true }
+  }
 };
-int ground_Salle1[MAP_ROWS][MAP_COLS] = {
-  {0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 },
-  {15, 13, 14, 12, 10, 15, 10, 13, 10, 14, 10, 13, 11, 15, 10, 13},
-  {10, 12, 11, 10, 14, 10, 12, 15, 11, 13, 12, 15, 14, 10, 12, 14},
-  {5 , 10, 10, 13, 11, 14, 10, 10, 10, 12, 10, 14, 12, 10, 11, 13},
-  {2 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 14, 12, 15, 11},
-  {1 , 13, 14, 11, 12, 10, 15, 10, 11, 10, 13, 12, 11, 10, 14, 10},
-  {1 , 10, 15, 10, 13, 10, 11, 10, 13, 11, 14, 15, 10, 12, 11, 2 },
-  {1 , 14, 12, 11, 10, 13, 15, 14, 12, 10, 13, 10, 14, 15, 13, 1 },
-  {1 , 11, 13, 10, 15, 12, 10, 12, 10, 15, 11, 10, 2 , 10, 11, 1 },
-  {1 , 12, 10, 11, 14, 10, 15, 13, 11, 12, 14, 2 , 1 , 12, 11, 1 },
-  {1 , 15, 14, 15, 13, 11, 10, 15, 10, 10, 2 , 1 , 1 , 4 , 4 , 1 },
-  {1 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 1 , 1 , 2 , 2 , 1 },
+int ground_Salle[3][MAP_ROWS][MAP_COLS] = {
+  {
+    {0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 },
+    {15, 13, 14, 12, 10, 15, 10, 13, 10, 14, 10, 13, 11, 15, 10, 13},
+    {10, 12, 11, 10, 14, 10, 12, 15, 11, 13, 12, 15, 14, 10, 12, 14},
+    {10, 10, 5 , 13, 11, 14, 10, 10, 10, 12, 10, 14, 12, 10, 11, 13},
+    {2 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 14, 12, 15, 11},
+    {1 , 13, 14, 11, 12, 10, 15, 10, 11, 10, 13, 12, 11, 10, 14, 10},
+    {1 , 10, 15, 10, 13, 10, 11, 10, 13, 11, 14, 15, 10, 12, 11, 2 },
+    {1 , 14, 12, 11, 10, 13, 15, 14, 12, 10, 13, 10, 14, 15, 13, 1 },
+    {1 , 11, 13, 10, 15, 12, 10, 12, 10, 15, 11, 10, 2 , 10, 11, 1 },
+    {1 , 12, 10, 11, 14, 10, 15, 13, 11, 12, 14, 2 , 1 , 12, 11, 1 },
+    {1 , 2 , 2 , 15, 13, 11, 10, 15, 10, 10, 2 , 1 , 1 , 4 , 4 , 1 },
+    {1 , 1 , 1 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 1 , 1 , 2 , 2 , 1 },
+  },{
+    {1 , 11, 13, 10, 12, 14, 12, 10, 13, 11, 15, 10, 12, 10, 15, 12},
+    {1 , 14, 12, 10, 13, 11, 12, 10, 10, 12, 10, 11, 10, 12, 13, 10},
+    {1 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 12, 13},
+    {1 , 12, 11, 10, 12, 10, 11, 12, 10, 11, 10, 14, 10, 13, 15, 10},
+    {1 , 10, 11, 12, 15, 11, 10, 14, 10, 15, 12, 10, 11, 10, 14, 15},
+    {1 , 15, 2 , 10, 11, 10, 15, 11, 15, 12, 10, 13, 2 , 10, 11, 10},
+    {1 , 11, 1 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 1 , 10, 13, 4 },
+    {1 , 12, 14, 10, 11, 12, 15, 10, 14, 12, 11, 12, 1 , 3 , 3 , 2 },
+    {1 , 11, 12, 10, 13, 10, 11, 13, 12, 10, 14, 10, 1 , 12, 5 , 1 },
+    {1 , 12, 10, 13, 10, 11, 12, 15, 14, 11, 10, 13, 10, 12, 15, 1 },
+    {1 , 10, 14, 12, 10, 13, 12, 10, 11, 10, 15, 12, 10, 15, 11, 1 },
+    {1 , 15, 11, 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 1 , 1 , 2 , 2 , 1 }
+  },{
+    {11, 13, 12, 10, 11, 12, 14, 13, 10, 11, 14, 10, 13, 14, 12, 1 },
+    {13, 10, 11, 14, 12, 15, 10, 11, 15, 14, 10, 12, 11, 10, 14, 1 },
+    {12, 15, 13, 10, 11, 10, 13, 14, 10, 12, 14, 10, 13, 15, 11, 1 },
+    {10, 13, 10, 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 2 , 11, 14, 3 , 1 },
+    {11, 14, 12, 11, 10, 13, 10, 14, 12, 13, 11, 1 , 10, 11, 13, 1 },
+    {10, 11, 13, 15, 12, 11, 13, 15, 10, 13, 14, 1 , 3 , 13, 11, 1 },
+    {14, 12, 11, 14, 13, 10, 12, 11, 14, 10, 15, 1 , 12, 10, 11, 1 },
+    {10, 13, 10, 15, 11, 10, 12, 10, 15, 11, 12, 1 , 13, 14, 3 , 1 },
+    {2 , 3 , 3 , 3 , 3 , 3 , 3 , 10, 14, 11, 15, 1 , 11, 10, 12, 1 },
+    {1 , 11, 13, 14, 12, 10, 13, 11, 15, 10, 12, 1 , 3 , 14, 13, 1 },
+    {1 , 5 , 12, 15, 13, 11, 10, 13, 12, 14, 10, 1 , 15, 12, 11, 1 },
+    {1 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2 , 2 , 1 }
+  }
 };
 
 //controles
@@ -140,6 +194,14 @@ bool physicsUpdated;
 bool airborn;
 bool done;
 bool slimeCollide;
+bool portalCollide;
+bool fireCollide;
+bool fire2Collide;
+int portalx;
+int portaly;
+int flammex[2] = {0,0};
+int flammey[2] = {0,0};
+
 
 //==========================================================================================
 
@@ -173,6 +235,7 @@ struct Party {
 
 struct Entity player;
 struct Entity slime;
+struct Entity bouclier;
 struct Party party;
 
 //==========================================================================================
@@ -228,28 +291,28 @@ void art_starbg(int color) {
         }
     }
 }
-void art_star(int x,int y) {
-  if (ground_Salle1[y][x] == 10) {
+void art_star(int x,int y,int mapNumber) {
+  if (ground_Salle[mapNumber][y][x] == 10) {
     tft.fillRect(x*BOX_SIZE+12, y*BOX_SIZE+8, 2, 2, VERYLIGHTGRAY);
     tft.fillRect(x*BOX_SIZE+4, y*BOX_SIZE+15, 6, 2, VERYLIGHTGRAY); 
     tft.fillRect(x*BOX_SIZE+6, y*BOX_SIZE+12, 2, 8, VERYLIGHTGRAY);
   }
-  else if (ground_Salle1[y][x] == 11) {
+  else if (ground_Salle[mapNumber][y][x] == 11) {
     tft.fillRect(x*BOX_SIZE+15, y*BOX_SIZE, 2, 2, VERYLIGHTGRAY);
   }
-  else if (ground_Salle1[y][x] == 12) {
+  else if (ground_Salle[mapNumber][y][x] == 12) {
     tft.fillRect(x*BOX_SIZE+13, y*BOX_SIZE+1, 2, 2, VERYLIGHTGRAY);
     tft.fillRect(x*BOX_SIZE, y*BOX_SIZE+4, 3, 3, VERYLIGHTGRAY);
   }
-  else if (ground_Salle1[y][x] == 13) {
+  else if (ground_Salle[mapNumber][y][x] == 13) {
     tft.fillRect(x*BOX_SIZE+5, y*BOX_SIZE+3, 2, 2, VERYLIGHTGRAY);
     tft.fillRect(x*BOX_SIZE+4, y*BOX_SIZE+14, 2, 2, VERYLIGHTGRAY);
   }
-  else if (ground_Salle1[y][x] == 14) {
+  else if (ground_Salle[mapNumber][y][x] == 14) {
     tft.fillRect(x*BOX_SIZE+12, y*BOX_SIZE+5, 6, 2, VERYLIGHTGRAY);
     tft.fillRect(x*BOX_SIZE+14, y*BOX_SIZE+2, 2, 8, VERYLIGHTGRAY);
   }
-  else if (ground_Salle1[y][x] == 15) {
+  else if (ground_Salle[mapNumber][y][x] == 15) {
     tft.fillRect(x*BOX_SIZE+13, y*BOX_SIZE+2, 2, 2, VERYLIGHTGRAY);
     tft.fillRect(x*BOX_SIZE+7, y*BOX_SIZE+7, 3, 3, VERYLIGHTGRAY);
   }
@@ -298,13 +361,27 @@ void art_fire(int x, int y) {
     tft.fillCircle(x+10, y+13, 8, ORANGE);
     tft.fillCircle(x+10, y+14, 5, YELLOW);
 }
-void art_map(int x,int y) {
-  if (ground_Salle1[y][x] == 1) art_blockterre(x*BOX_SIZE, y*BOX_SIZE); 
-  else if (ground_Salle1[y][x] == 2) art_blocksurface(x*BOX_SIZE, y*BOX_SIZE);
-  else if (ground_Salle1[y][x] == 3) art_blockplateforme(x*BOX_SIZE, y*BOX_SIZE);
-  else if (ground_Salle1[y][x] == 4) art_fire(x*BOX_SIZE, y*BOX_SIZE);
-  else if (ground_Salle1[y][x] == 5) art_portal(x*BOX_SIZE,y*BOX_SIZE);
-  else art_star(x, y);
+void art_map(int x,int y,int mapNumber) {
+  if (ground_Salle[mapNumber][y][x] == 1) art_blockterre(x*BOX_SIZE, y*BOX_SIZE); 
+  else if (ground_Salle[mapNumber][y][x] == 2) art_blocksurface(x*BOX_SIZE, y*BOX_SIZE);
+  else if (ground_Salle[mapNumber][y][x] == 3) art_blockplateforme(x*BOX_SIZE, y*BOX_SIZE); 
+  else if (ground_Salle[mapNumber][y][x] == 4) {
+    art_fire(x*BOX_SIZE, y*BOX_SIZE);
+    if(flammex[0] == 0 && flammey[0] == 0) {
+      flammex[0] = x;
+      flammey[0] = y;
+    }
+    else {
+      flammex[1] = x;
+      flammey[1] = y;
+    }
+  }
+  else if (ground_Salle[mapNumber][y][x] == 5) {
+    art_portal(x*BOX_SIZE,y*BOX_SIZE);
+    portalx = x;
+    portaly = y;
+  }
+  else art_star(x, y, mapNumber);
 }
 void art_portal (int x, int y){
   tft.fillCircle(x+10, y+9, 9, PORTALE);
@@ -528,7 +605,7 @@ void art_persog(int x, int y) {
   tft.fillRect(x+11, y+25, 1, 1, CYAN);
   tft.fillRect(x+11, y+28, 1, 1, CYAN);
 }
-void art_persod(int x, int y) {
+/*void art_persod(int x, int y) {
 
   //Robe partie gauche
   tft.fillTriangle(x, y+36, x+5, y+30, x+3, y+38, BROWN);
@@ -568,6 +645,23 @@ void art_persod(int x, int y) {
   tft.fillRect(x+8, y+25, 1, 1, CYAN);
   tft.fillRect(x+8, y+28, 1, 1, CYAN);
   
+}*/
+void art_persod(int x, int y) {
+  tft.fillCircle(x+15, y+6, 4, VERYLIGHTGRAY);
+  tft.fillRoundRect(x+16, y+3, 4, 6, 2, BLACK);
+
+  tft.fillTriangle(x+17, y+8, x+19, y+8, x+18, y+9, BLUE);
+  tft.drawLine(x+19, y+4, x+17, y+5, BLUE);
+  tft.fillCircle(x+15, y+16, 5, VERYLIGHTGRAY);
+  tft.fillCircle(x+15, y+14, 2, WHITE);
+  tft.fillTriangle(x+14, y+12, x+15, y+16, x+4, y+18, WHITE);
+  tft.fillTriangle(x+5, y+19, x+15, y+16, x+4, y+18, WHITE);
+  tft.fillCircle(x+4, y+19, 1, WHITE);
+  tft.fillTriangle(x+10, y+16, x+18, y+20, x+6, y+30, VERYLIGHTGRAY);
+  tft.fillTriangle(x+10, y+32, x+18, y+20, x+6, y+30, VERYLIGHTGRAY);
+  tft.drawCircle(x+8, y+31, 3, CYAN);
+  tft.drawCircle(x+5, y+36, 2, CYAN);
+  tft.drawCircle(x+1, y+38, 1, CYAN);
 }
 void art_slimeg(int x, int y, int color, int color2) {
 
@@ -652,6 +746,7 @@ void art_slimed_shadow(int x, int y) {
   tft.fillRect(x, y-5, 20, 25, BLACK);
 
 }
+
 //fonctions affichage entités
 
 void last_square() {
@@ -672,23 +767,18 @@ void last_square() {
   
 
   // refresh graphique perso
-  int x = player.prevx/BOX_SIZE;
-  int x2 = (player.prevx + (BOX_SIZE - 1)) / BOX_SIZE;
-  int y = player.prevy/BOX_SIZE;
-  int y2 = player.prevy/BOX_SIZE + 1;
-  int y3 = (player.prevy + 2*BOX_SIZE - 1)/BOX_SIZE;
-  art_map(x,y);
-  art_map(x2,y);
-  art_map(x,y2);
-  art_map(x2,y2);
-  art_map(x,y3);
-  art_map(x2,y3);
+  art_map(player.prevx/BOX_SIZE,player.prevy/BOX_SIZE,mapNumber);
+  art_map((player.prevx + (BOX_SIZE - 1)) / BOX_SIZE,player.prevy/BOX_SIZE,mapNumber);
+  art_map(player.prevx/BOX_SIZE,player.prevy/BOX_SIZE + 1,mapNumber);
+  art_map((player.prevx + (BOX_SIZE - 1)) / BOX_SIZE,player.prevy/BOX_SIZE + 1,mapNumber);
+  art_map(player.prevx/BOX_SIZE,(player.prevy + 2*BOX_SIZE - 1)/BOX_SIZE,mapNumber);
+  art_map((player.prevx + (BOX_SIZE - 1)) / BOX_SIZE,(player.prevy + 2*BOX_SIZE - 1)/BOX_SIZE,mapNumber);
 
   // refresh graphique slime
-  art_map(slime.prevx/BOX_SIZE,slime.prevy/BOX_SIZE);
-  art_map((slime.prevx + BOX_SIZE-1)/BOX_SIZE,slime.prevy/BOX_SIZE);
-  art_map(slime.prevx/BOX_SIZE,(slime.prevy - BOX_SIZE+10)/BOX_SIZE);
-  art_map((slime.prevx + BOX_SIZE-1)/BOX_SIZE,(slime.prevy-BOX_SIZE +10)/BOX_SIZE);
+  art_map(slime.prevx/BOX_SIZE,slime.prevy/BOX_SIZE,mapNumber);
+  art_map((slime.prevx + BOX_SIZE-1)/BOX_SIZE,slime.prevy/BOX_SIZE,mapNumber);
+  art_map(slime.prevx/BOX_SIZE,(slime.prevy - BOX_SIZE+10)/BOX_SIZE,mapNumber);
+  art_map((slime.prevx + BOX_SIZE-1)/BOX_SIZE,(slime.prevy-BOX_SIZE +10)/BOX_SIZE,mapNumber);
 }
 void display_player() {
   if(player.speedx > 0) {
@@ -846,10 +936,10 @@ void display_menu() {
   display_life();
   display_score();
 }
-void display_map() {
+void display_map(int mapNumber) {
   for(int i = 0;i < MAP_COLS;i++) {
     for(int j = 0;j < MAP_ROWS;j++) {
-      art_map(i,j);
+      art_map(i,j,mapNumber);
     }
   }
 }
@@ -906,10 +996,8 @@ void buttons_update() {
   }
 }
 void setup_player(Entity &player) {
-  player.x = PSTARTX;
-  player.y = PSTARTY;
-  player.prevx = PSTARTX;
-  player.prevy = PSTARTY;
+  player.x = pstartx[mapNumber];
+  player.y = pstarty[mapNumber];
   player.speedx = 0;
   player.speedy = 0;
   player.ax = 0;
@@ -930,7 +1018,21 @@ void setup_slime(Entity &slime,int originx,int originy,int leftLimit,int rightLi
   slime.ax = 0;
   slime.ay = 0;
   slime.speedy = 0;
-  slime.speedx = 0;
+  slime.speedx = 10;
+}
+void setup_bouclier(Entity &bouclier,int originx,int originy,int leftLimit,int rightLimit) {
+  bouclier.x = originx*BOX_SIZE;
+  bouclier.y = originy*BOX_SIZE;
+  bouclier.ulimit = originy;
+  bouclier.dlimit = originy;
+  bouclier.llimit = leftLimit*BOX_SIZE;
+  bouclier.rlimit = rightLimit*BOX_SIZE;
+  bouclier.type = 'b';
+  bouclier.state = false;
+  bouclier.ax = 0;
+  bouclier.ay = 0;
+  bouclier.speedy = 0;
+  bouclier.speedx = 0;
 }
 void update_physics(Entity &player) {
   player.prevx = player.x;
@@ -961,39 +1063,55 @@ void update_slime(Entity &slime) {
   slime.prevx = slime.x;
   slime.prevy = slime.y;
 
-  if(player.y > slime.y - BOX_SIZE*4 + 10 && player.y < slime.y + 40) {
-    if(player.x > slime.x - BOX_SIZE*3 && player.x <= slime.x) {
-      slime.state = true;
-      slime.ax = -1;
-    }
-    else if(player.x < slime.x + BOX_SIZE*3 && player.x > slime.x) {
-      slime.state = true;
-      slime.ax = 1;
-    }
-    else {
-    slime.state = false;
-    slime.ax = 0;
-    slime.speedx = slime.speedx/2;
-    }
-  }
-  else {
-    slime.state = false;
-    slime.ax = 0;
-    slime.speedx = slime.speedx/2;
-  }
   if (slime.x + slime.speedx > slime.rlimit-BOX_SIZE) {
-    slime.ax = 0;
-    slime.speedx = -slime.speedx/2;
+    slime.speedx = -slime.speedx;
     slime.x = slime.rlimit-BOX_SIZE;
   }
   else if (slime.x + slime.speedx < slime.llimit+1) {
-    slime.ax = 0;
-    slime.speedx = -slime.speedx/2;
+    slime.speedx = -slime.speedx;
     slime.x = slime.llimit+1;
   }
   else {
-    slime.speedx = slime.speedx + slime.ax;
     slime.x = slime.x + slime.speedx;
+  }  
+}
+void update_bouclier(Entity &bouclier) {
+  bouclier.prevx = bouclier.x;
+  bouclier.prevy = bouclier.y;
+
+  if(player.y > bouclier.y - BOX_SIZE*4 + 10 && player.y < bouclier.y + 40) {
+    if(player.x > bouclier.x - BOX_SIZE*3 && player.x <= bouclier.x) {
+      bouclier.state = true;
+      bouclier.ax = -1;
+    }
+    else if(player.x < bouclier.x + BOX_SIZE*3 && player.x > bouclier.x) {
+      bouclier.state = true;
+      bouclier.ax = 1;
+    }
+    else {
+      bouclier.state = false;
+      bouclier.ax = 0;
+      bouclier.speedx = bouclier.speedx/2;
+    }
+  }
+  else {
+    bouclier.state = false;
+    bouclier.ax = 0;
+    bouclier.speedx = bouclier.speedx/2;
+  }
+  if (bouclier.x + bouclier.speedx > bouclier.rlimit-BOX_SIZE) {
+    bouclier.ax = 0;
+    bouclier.speedx = -bouclier.speedx/2;
+    bouclier.x = bouclier.rlimit-BOX_SIZE;
+  }
+  else if (bouclier.x + bouclier.speedx < bouclier.llimit+1) {
+    bouclier.ax = 0;
+    bouclier.speedx = -bouclier.speedx/2;
+    bouclier.x = bouclier.llimit+1;
+  }
+  else {
+    bouclier.speedx = bouclier.speedx + bouclier.ax;
+    bouclier.x = bouclier.x + bouclier.speedx;
   }
 }
 void update_xposition(Entity &player) {
@@ -1085,27 +1203,27 @@ void next_walls(Entity &player) {
 
   // boucle mur droit
   for(int i = tabx + 1;i < MAP_COLS;i++) {
-    if(ground[taby][i] || ground[taby2][i] || ground[taby3][i]) {
+    if(ground[mapNumber][taby][i] || ground[mapNumber][taby2][i] || ground[mapNumber][taby3][i]) {
       nextRightWall = i * BOX_SIZE;
       break;
     }
   }
   // boucle sol
   for(int i = taby + 1;i < MAP_ROWS;i++) {
-    if(ground[i][tabx] == true || ground[i][tabx2] == true) {
+    if(ground[mapNumber][i][tabx] == true || ground[mapNumber][i][tabx2] == true) {
       nextFloor = i * BOX_SIZE;
       break;
     }
   }
   // boucle mur gauche
   for(int j = 0;j < tabx;j++) {
-    if(ground[taby][j] || ground[taby2][j] || ground[taby3][j]) {
+    if(ground[mapNumber][taby][j] || ground[mapNumber][taby2][j] || ground[mapNumber][taby3][j]) {
       nextLeftWall = (j+1) * BOX_SIZE;
     }
   }
   // plafond
   for(int j = 0;j < taby;j++) {
-    if(ground[j][tabx] == true || ground[j][tabx2] == true) {
+    if(ground[mapNumber][j][tabx] == true || ground[mapNumber][j][tabx2] == true) {
       nextCeilling = (j+1) * BOX_SIZE;
     }
   }
@@ -1206,6 +1324,40 @@ void life_sub() {
     winScreen = false;
   }
 }
+void portal_collision(Entity &player) {
+  int diffx = player.x - portalx*BOX_SIZE;
+  int diffy = player.y - portaly*BOX_SIZE;
+  if((diffx < BOX_SIZE && diffx > -BOX_SIZE) && (diffy < BOX_SIZE && diffy > -2*BOX_SIZE)) {
+    portalCollide = true;
+  }
+  else {
+    portalCollide = false;
+  }
+}
+void fire_collision(Entity &player) {
+  int diffx = player.x - flammex[0]*BOX_SIZE;
+  int diffy = player.y - flammey[0]*BOX_SIZE;
+  if((diffx < BOX_SIZE && diffx > -BOX_SIZE) && (diffy < BOX_SIZE && diffy > -2*BOX_SIZE)) {
+    fireCollide = true;
+  }
+  else {
+    fireCollide = false;
+  }
+  diffx = player.x - flammex[1]*BOX_SIZE;
+  diffy = player.y - flammey[1]*BOX_SIZE;
+  if((diffx < BOX_SIZE && diffx > -BOX_SIZE) && (diffy < BOX_SIZE && diffy > -2*BOX_SIZE)) {
+    fire2Collide = true;
+  }
+  else {
+    fire2Collide = false;
+  }
+  fireCollide = fireCollide || fire2Collide;
+}
+void collide_test() {
+  portal_collision(player);
+  fire_collision(player);
+  coll_slime(player,slime);
+}
 
 //=======================================================================================
 
@@ -1266,7 +1418,8 @@ void loop() {
 
     //setup graphique
     tft.fillScreen(BLACK);
-    display_map();
+    mapNumber = 1;
+    display_map(mapNumber);
 
     //setup logique
     display_menu();
@@ -1279,8 +1432,13 @@ void loop() {
     //setup entités
     setup_player(player);
     display_player();
-    setup_slime(slime,3,10,3,10);     // setup slime n : arg1 , origine x : arg2 , origine y : arg3 , limites murs : arg3 et arg4
-    display_slime();
+    if(mapNumber == 1) {setup_slime(slime,3,10,3,10); display_slime();}  
+    else if(mapNumber == 2) {
+      //TODO mob salle 2
+    }
+    else {
+      //TODO mob salle 3
+    }
 
     //setup booleens
     finished = false;
@@ -1298,27 +1456,28 @@ void loop() {
       next_walls(player);
       update_physics(player);
       update_slime(slime);
-      coll_slime(player,slime);
-      last_square();
-      display_player();
-      display_slime();
+      collide_test();
       timeCalculation(party);
-      if(slimeCollide) {
-        if(player.direction) {
-          art_persod_shadow(player.x,player.y);
-        }
-        else {
-          art_persog_shadow(player.x,player.y);
-        }                                                 // recouvrement du perso lorsqu'il respawn
+      if(slimeCollide || fireCollide) {
         life_sub();
         setup_player(player);
+      }
+      if(portalCollide) {
+        finished = true;
+        winScreen = true;
+        gOverScreen = false;
       }
       if(digitalRead(27)) {
         finished = true;
         winScreen = true;
         gOverScreen = false;
       }
-		  timebuffer = millis();
+		  last_square();
+      display_player();
+      if(mapNumber == 1) display_slime(); 
+      else if(mapNumber == 2) {}//mob salle 2
+      else {}//mob salle 3
+      timebuffer = millis();
     } 
   }
 
