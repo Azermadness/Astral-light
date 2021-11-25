@@ -83,7 +83,7 @@ int nextCeilling;
 int nextFloor;
 int lifeCount;
 int pstartx[3] = {30,30,30};
-int pstarty[3] = {150,150,150};
+int pstarty[3] = {150,50,150};
 bool ground[3][MAP_ROWS][MAP_COLS] = {
   {
     {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false},
@@ -99,18 +99,18 @@ bool ground[3][MAP_ROWS][MAP_COLS] = {
     {true , true , true , false, false, false, false, false, false, false, true , true , true , false, false, true },
     {true , true , true , true , true , true , true , true , true , true , true , true , true , true , true , true },
   },{
+    {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false},
     {true , false, false, false, false, false, false, false, false, false, false, false, false, false, false, false},
     {true , false, false, false, false, false, false, false, false, false, false, false, false, false, false, false},
-    {true , true , true , true , true , true , true , true , true , true , true , true , true , true , false, false},
     {true , false, false, false, false, false, false, false, false, false, false, false, false, false, false, false},
     {true , false, false, false, false, false, false, false, false, false, false, false, false, false, false, false},
-    {true , false, true , false, false, false, false, false, false, false, false, false, true , false, false, false},
-    {true , false, true , true , true , true , true , true , true , true , true , true , true , false, false, false},
-    {true , false, false, false, false, false, false, false, false, false, false, false, true , true , true , true },
-    {true , false, false, false, false, false, false, false, false, false, false, false, true , false, false, true },
-    {true , false, false, false, false, false, false, false, false, false, false, false, false, false, false, true },
-    {true , false, false, false, false, false, false, false, false, false, false, false, false, false, false, true },
-    {true , false, false, true , true , true , true , true , true , true , true , true , true , true , true , true },
+    {true , true , true , true , true , true , true , true , true , true , true , true , true , false, false, false},
+    {true , false, false, false, false, false, false, false, false, false, false, false, false, false, false, false},
+    {true , false, false, false, false, false, false, false, false, false, false, false, false, false, false, false},
+    {true , true , false, false, false, false, false, false, false, false, false, false, false, true , true , true },
+    {true , false, false, false, false, false, false, false, false, false, false, false, false, false, true , true },
+    {true , false, false, false, true , false, false, false, false, false, false, false, false, false, true , true },
+    {true , false, false, false, true , true , true , true , true , true , true , true , true , true , true , true }
   },{
     {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true },
     {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true },
@@ -141,18 +141,18 @@ int ground_Salle[3][MAP_ROWS][MAP_COLS] = {
     {1 , 2 , 2 , 15, 13, 11, 10, 15, 10, 10, 2 , 1 , 1 , 4 , 4 , 1 },
     {1 , 1 , 1 , 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 1 , 1 , 2 , 2 , 1 },
   },{
-    {1 , 11, 13, 10, 12, 14, 12, 10, 13, 11, 15, 10, 12, 10, 15, 12},
+    {0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 },
     {1 , 14, 12, 10, 13, 11, 12, 10, 10, 12, 10, 11, 10, 12, 13, 10},
-    {1 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 12, 13},
+    {1 , 11, 14, 11, 15, 13, 10, 12, 11, 15, 14, 13, 11, 15, 12, 13},
     {1 , 12, 11, 10, 12, 10, 11, 12, 10, 11, 10, 14, 10, 13, 15, 10},
     {1 , 10, 11, 12, 15, 11, 10, 14, 10, 15, 12, 10, 11, 10, 14, 15},
-    {1 , 15, 2 , 10, 11, 10, 15, 11, 15, 12, 10, 13, 2 , 10, 11, 10},
-    {1 , 11, 1 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 1 , 10, 13, 4 },
-    {1 , 12, 14, 10, 11, 12, 15, 10, 14, 12, 11, 12, 1 , 3 , 3 , 2 },
-    {1 , 11, 12, 10, 13, 10, 11, 13, 12, 10, 14, 10, 1 , 12, 5 , 1 },
+    {1 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 10, 11, 10},
+    {1 , 5 , 12, 11, 15, 13, 11, 14, 10, 11, 15, 10, 14, 10, 13, 14},
+    {1 , 12, 14, 10, 11, 12, 15, 10, 14, 12, 11, 12, 11, 14, 12, 10},
+    {1 , 3 , 12, 10, 13, 10, 11, 13, 12, 10, 14, 10, 15, 3 , 2 , 2 },
     {1 , 12, 10, 13, 10, 11, 12, 15, 14, 11, 10, 13, 10, 12, 15, 1 },
-    {1 , 10, 14, 12, 10, 13, 12, 10, 11, 10, 15, 12, 10, 15, 11, 1 },
-    {1 , 15, 11, 2 , 2 , 2 , 2 , 2 , 2 , 2 , 1 , 1 , 1 , 2 , 2 , 1 }
+    {1 , 10, 14, 10, 2 , 13, 12, 10, 11, 10, 15, 12, 10, 15, 11, 1 },
+    {1 , 15, 11, 12, 1 , 2 , 2 , 2 , 2 , 2 , 1 , 2 , 2 , 1 , 1 , 1 }
   },{
     {11, 13, 12, 10, 11, 12, 14, 13, 10, 11, 14, 10, 13, 14, 12, 1 },
     {13, 10, 11, 14, 12, 15, 10, 11, 15, 14, 10, 12, 11, 10, 14, 1 },
@@ -185,6 +185,8 @@ unsigned long timebuffer;
 unsigned long refresh = 100;
 unsigned long timePassed;
 bool gameSetup;
+bool L1Done;
+bool L2Done;
 bool homeMenu;
 bool multiMenu;
 bool winScreen;
@@ -194,6 +196,7 @@ bool physicsUpdated;
 bool airborn;
 bool done;
 bool slimeCollide;
+bool shieldCollide;
 bool portalCollide;
 bool fireCollide;
 bool fire2Collide;
@@ -224,6 +227,7 @@ struct Entity {
     int rlimit;         //
     bool direction;     // true = droite / false = gauche
     bool prevDirection; // orientation du joueur 1 frame en arrière
+    bool enabled;       // définit si une entité sera présente ou pas sur la carte
 };
 struct Party {
   int partyTimeMil;
@@ -764,6 +768,8 @@ void last_square() {
   else {
     art_slimeg_shadow(slime.prevx,slime.prevy);
   }
+
+  tft.fillRect(bouclier.prevx,bouclier.prevy,BOX_SIZE,PLAYER_HEIGHT,BLACK);
   
 
   // refresh graphique perso
@@ -779,6 +785,14 @@ void last_square() {
   art_map((slime.prevx + BOX_SIZE-1)/BOX_SIZE,slime.prevy/BOX_SIZE,mapNumber);
   art_map(slime.prevx/BOX_SIZE,(slime.prevy - BOX_SIZE+10)/BOX_SIZE,mapNumber);
   art_map((slime.prevx + BOX_SIZE-1)/BOX_SIZE,(slime.prevy-BOX_SIZE +10)/BOX_SIZE,mapNumber);
+
+  // refresh graphique bouclier
+  art_map(bouclier.prevx/BOX_SIZE,bouclier.prevy/BOX_SIZE,mapNumber);
+  art_map((bouclier.prevx + (BOX_SIZE - 1)) / BOX_SIZE,bouclier.prevy/BOX_SIZE,mapNumber);
+  art_map(bouclier.prevx/BOX_SIZE,bouclier.prevy/BOX_SIZE + 1,mapNumber);
+  art_map((bouclier.prevx + (BOX_SIZE - 1)) / BOX_SIZE,bouclier.prevy/BOX_SIZE + 1,mapNumber);
+  art_map(bouclier.prevx/BOX_SIZE,(bouclier.prevy + 2*BOX_SIZE - 1)/BOX_SIZE,mapNumber);
+  art_map((bouclier.prevx + (BOX_SIZE - 1)) / BOX_SIZE,(bouclier.prevy + 2*BOX_SIZE - 1)/BOX_SIZE,mapNumber);
 }
 void display_player() {
   if(player.speedx > 0) {
@@ -821,9 +835,30 @@ void display_slime() {
     art_slimeg(slime.x,slime.y,color,color2);
   }
 }
+void display_bouclier() {
+
+  if(bouclier.speedx > 0) {
+    bouclier.direction = true;
+  }
+  if(bouclier.speedx < 0) {
+    bouclier.direction = false;
+  }
+  if(bouclier.direction == true) {
+    art_shieldd(bouclier.x,bouclier.y);
+  }
+  else {
+    art_shieldg(bouclier.x,bouclier.y);
+  }
+}
 
 // fonction affichage overlay
 
+void display_L1Done() {
+  tft.fillScreen(BLACK);
+}
+void display_L2Done() {
+  tft.fillScreen(BLACK);
+}
 void display_winMenu() {
   tft.fillScreen(BLACK);
   art_starbg(GRAY);
@@ -1018,7 +1053,15 @@ void setup_slime(Entity &slime,int originx,int originy,int leftLimit,int rightLi
   slime.ax = 0;
   slime.ay = 0;
   slime.speedy = 0;
-  slime.speedx = 10;
+  slime.speedx = 8;
+  if(originx == -1 && originy == -1) {
+    slime.enabled = false;
+  }
+  else {
+    slime.enabled = true;
+  }
+  
+  
 }
 void setup_bouclier(Entity &bouclier,int originx,int originy,int leftLimit,int rightLimit) {
   bouclier.x = originx*BOX_SIZE;
@@ -1033,6 +1076,12 @@ void setup_bouclier(Entity &bouclier,int originx,int originy,int leftLimit,int r
   bouclier.ay = 0;
   bouclier.speedy = 0;
   bouclier.speedx = 0;
+  if(originx == -1 && originy == -1) {
+    bouclier.enabled = false;
+  }
+  else {
+    bouclier.enabled = true;
+  }
 }
 void update_physics(Entity &player) {
   player.prevx = player.x;
@@ -1060,8 +1109,13 @@ void update_physics(Entity &player) {
   update_yposition(player);
 }
 void update_slime(Entity &slime) {
+
   slime.prevx = slime.x;
   slime.prevy = slime.y;
+
+  if(!slime.enabled) {
+    return;
+  }
 
   if (slime.x + slime.speedx > slime.rlimit-BOX_SIZE) {
     slime.speedx = -slime.speedx;
@@ -1076,8 +1130,12 @@ void update_slime(Entity &slime) {
   }  
 }
 void update_bouclier(Entity &bouclier) {
+
   bouclier.prevx = bouclier.x;
   bouclier.prevy = bouclier.y;
+  if(!bouclier.enabled) {
+    return;
+  }
 
   if(player.y > bouclier.y - BOX_SIZE*4 + 10 && player.y < bouclier.y + 40) {
     if(player.x > bouclier.x - BOX_SIZE*3 && player.x <= bouclier.x) {
@@ -1243,17 +1301,26 @@ void timeCalculation(Party &party) {
   party.partyTimeMil++;
   if(gameSetup) {
     party.partyTimeMil--;
-    tft.setCursor(10, (SCREENHEIGHT*0.2)/8);
-    tft.print("00");
     tft.setTextColor(WHITE);
+    tft.setCursor(10, (SCREENHEIGHT*0.2)/8);
+    if(min < 10) {
+      tft.print("0");
+      tft.print(min);
+    }
+    else tft.print(min);
     tft.setCursor(31,(SCREENHEIGHT*0.2)/8);
     tft.print(":");
     tft.setCursor(40, (SCREENHEIGHT*0.2)/8);
-    tft.print("00");
+    if(sec < 10) {
+      tft.print("0");
+      tft.print(sec);
+    }
+    else tft.print(sec);
     tft.setCursor(61,(SCREENHEIGHT*0.2)/8);
     tft.print(":");
     tft.setCursor(70, (SCREENHEIGHT*0.2)/8);
-    tft.print("00");
+    tft.print("0");
+    tft.print(mil);
   }
 
   if (party.partyTimeMil > 9) {
@@ -1310,6 +1377,17 @@ void coll_slime(Entity &player,Entity &slime) {
     slimeCollide = false;
   }
 }
+void coll_shield(Entity &player,Entity &bouclier) {
+
+  int diffx = player.x - bouclier.x;
+  int diffy = player.y - bouclier.y;
+  if((diffx < BOX_SIZE && diffx > -BOX_SIZE) && (diffy < BOX_SIZE && diffy > -2*BOX_SIZE)) {
+    shieldCollide = true;
+  }
+  else {
+    shieldCollide = false;
+  }
+}
 void life_sub() {
   lifeCount--;
   if(lifeCount == 2) {
@@ -1357,6 +1435,13 @@ void collide_test() {
   portal_collision(player);
   fire_collision(player);
   coll_slime(player,slime);
+}
+void init_gameValues() {
+  lifeCount = 3;
+  mapNumber = 0;
+  party.partyTimeMil = 0;
+  party.partyTimeMin = 0;
+  party.partyTimeSec = 0;
 }
 
 //=======================================================================================
@@ -1410,6 +1495,7 @@ void loop() {
     if(digitalRead(27)) {
       multiMenu = false;
       gameSetup = true;
+      init_gameValues();
     }
   }
   
@@ -1418,23 +1504,22 @@ void loop() {
 
     //setup graphique
     tft.fillScreen(BLACK);
-    mapNumber = 1;
     display_map(mapNumber);
-
-    //setup logique
     display_menu();
-    lifeCount = 3;
-    party.partyTimeMil = 0;
-    party.partyTimeMin = 0;
-    party.partyTimeSec = 0;
     timeCalculation(party);
 
     //setup entités
     setup_player(player);
     display_player();
-    if(mapNumber == 1) {setup_slime(slime,3,10,3,10); display_slime();}  
-    else if(mapNumber == 2) {
-      //TODO mob salle 2
+    if(mapNumber == 0) {
+      setup_slime(slime,3,10,3,10);
+      display_slime();
+      setup_bouclier(bouclier,-1,-1,0,0);
+      }  
+    else if(mapNumber == 1) {
+      setup_slime(slime,-1,-1,0,0);
+      setup_bouclier(bouclier,10,9,4,13);
+      display_bouclier();
     }
     else {
       //TODO mob salle 3
@@ -1458,27 +1543,77 @@ void loop() {
       update_slime(slime);
       collide_test();
       timeCalculation(party);
+      last_square();
+      display_player();
+      if(mapNumber == 0) display_slime(); 
+      else if(mapNumber == 1) {
+        display_bouclier();
+      }
+      else {}//mob salle 3
       if(slimeCollide || fireCollide) {
         life_sub();
         setup_player(player);
       }
       if(portalCollide) {
         finished = true;
-        winScreen = true;
         gOverScreen = false;
+        if(mapNumber == 0) {
+          mapNumber = 1;
+          L1Done = true;
+        }
+        else if(mapNumber == 1) {
+          mapNumber = 2;
+          L2Done = true;
+        }
+        else {
+          mapNumber = 0;
+          winScreen = true;
+        }
       }
       if(digitalRead(27)) {
         finished = true;
-        winScreen = true;
         gOverScreen = false;
+        if(mapNumber == 0) {
+          mapNumber = 1;
+          L1Done = true;
+        }
+        else if(mapNumber == 1) {
+          mapNumber = 2;
+          L2Done = true;
+        }
+        else {
+          mapNumber = 0;
+          winScreen = true;
+        }
       }
-		  last_square();
-      display_player();
-      if(mapNumber == 1) display_slime(); 
-      else if(mapNumber == 2) {}//mob salle 2
-      else {}//mob salle 3
       timebuffer = millis();
     } 
+  }
+
+  done = false;
+  while(L1Done){
+    if(!done) {
+      done = true;
+      display_L1Done();
+      mapNumber = 1;
+    }
+    if(digitalRead(27)) {
+      gameSetup = true;
+      L1Done = false;
+    }
+  }
+  
+  done = false;
+  while(L2Done){
+    if(!done) {
+      done = true;
+      display_L2Done();
+      mapNumber = 2;
+    }
+    if(digitalRead(27)) {
+      gameSetup = true;
+      L2Done = false;
+    }
   }
 
   done = false;
