@@ -145,7 +145,7 @@ int ground_Salle[3][MAP_ROWS][MAP_COLS] = {
     {1 , 14, 12, 10, 13, 11, 12, 10, 10, 12, 10, 11, 10, 12, 13, 10},
     {1 , 11, 14, 11, 15, 13, 10, 12, 11, 15, 14, 13, 11, 15, 12, 13},
     {1 , 12, 11, 10, 12, 10, 11, 12, 10, 11, 10, 14, 10, 13, 15, 10},
-    {1 , 10, 11, 12, 15, 11, 10, 14, 10, 15, 12, 10, 11, 10, 14, 15},
+    {1 , 10, 11, 12, 15, 11, 4 , 14, 10, 15, 12, 10, 4 , 10, 14, 15},
     {1 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 3 , 10, 11, 10},
     {1 , 5 , 12, 11, 15, 13, 11, 14, 10, 11, 15, 10, 14, 10, 13, 14},
     {1 , 12, 14, 10, 11, 12, 15, 10, 14, 12, 11, 12, 11, 14, 12, 10},
@@ -184,6 +184,8 @@ bool greenPressed;
 unsigned long timebuffer;
 unsigned long refresh = 100;
 unsigned long timePassed;
+unsigned long timePassedFPS;
+unsigned long timeBufferFPS;
 bool gameSetup;
 bool L1Done;
 bool L2Done;
@@ -909,7 +911,7 @@ void display_loseMenu() {
 void display_topMenu() {
   display_life();
   timeCalculation(party);
-  display_score();
+  display_fps();
 }
 void display_multiMenu() {
   tft.fillScreen(BLACK);
@@ -954,13 +956,12 @@ void display_homeMenu() {
 void display_topBar() {
   tft.fillRect(0, 0, SCREENWIDTH, 20, BLACK);
 }
-void display_score() {
+void display_fps() {
   tft.setTextSize(2);
   tft.setTextColor(WHITE);
-  
-  tft.setCursor((SCREENHEIGHT*7.2)/8, (SCREENHEIGHT*0.2)/8);
-  tft.print("SCORE:");
-  tft.print("??");
+  tft.setCursor((SCREENHEIGHT+BOX_SIZE), (SCREENHEIGHT*0.2)/8);
+  tft.print("FPS:");
+  tft.print(incr);
 }
 void display_life() {
   art_hp((SCREENWIDTH*3.3)/8, (SCREENHEIGHT*0.1)/8, RED);
@@ -976,7 +977,6 @@ void display_life() {
 void display_menu() {
   display_topBar();
   display_life();
-  display_score();
 }
 void display_map(int mapNumber) {
   for(int i = 0;i < MAP_COLS;i++) {
@@ -993,7 +993,7 @@ void art_hp(int x, int y, int backgroundColor) {
 
 //fonctions physiques
 
-void buttons_update() {
+void buttons_update() {                           // update des boutons
   //test down pressed
   if (digitalRead(28) || digitalRead(24)) {
     downPressed = true;
@@ -1037,7 +1037,7 @@ void buttons_update() {
     greenPressed = false;
   }
 }
-void setup_player(Entity &player) {
+void setup_player(Entity &player) {                                                             // initialise les données du joueur
   player.x = pstartx[mapNumber];
   player.y = pstarty[mapNumber];
   player.speedx = 0;
@@ -1048,7 +1048,7 @@ void setup_player(Entity &player) {
   player.direction = true;
   slimeCollide = false;
 }
-void setup_slime(Entity &slime,int originx,int originy,int leftLimit,int rightLimit) {
+void setup_slime(Entity &slime,int originx,int originy,int leftLimit,int rightLimit) {          // initialise les données du slime
   slime.x = originx*BOX_SIZE;
   slime.y = originy*BOX_SIZE;
   slime.ulimit = originy;
@@ -1072,7 +1072,7 @@ void setup_slime(Entity &slime,int originx,int originy,int leftLimit,int rightLi
   
   
 }
-void setup_bouclier(Entity &bouclier,int originx,int originy,int leftLimit,int rightLimit) {
+void setup_bouclier(Entity &bouclier,int originx,int originy,int leftLimit,int rightLimit) {    // initialise les données du bouclier
   bouclier.x = originx*BOX_SIZE;
   bouclier.y = originy*BOX_SIZE;
   bouclier.ulimit = originy;
@@ -1094,21 +1094,21 @@ void setup_bouclier(Entity &bouclier,int originx,int originy,int leftLimit,int r
     bouclier.enabled = true;
   }
 }
-void setup_plante(int x, int y,bool dir) {
+void setup_plante(int x, int y,bool dir) {                                                      // initialise les données de la plante
   plantex = BOX_SIZE*x;
   plantey = y*BOX_SIZE;
   if(x == -1 && y == -1) return;
   art_plante_off(plantex,plantey);
   dirPlante = dir;
 }
-void update_physics(Entity &player) {
-  player.prevx = player.x;
+void update_physics(Entity &player) {         // actualise la position du joueur
+  player.prevx = player.x;    // sauvegarde la pos du joueur
   player.prevy = player.y;
   player.prevDirection = player.direction;
   slime.prevDirection = slime.direction;
   bouclier.prevDirection = bouclier.direction;
 
-  if(airborn) player.ay = 2;
+  if(airborn) player.ay = 2;            //tests pour determiner la position suivante du joueur
 
 	if(downPressed) player.ay = 3;
   else player.ay = 2;
@@ -1127,7 +1127,7 @@ void update_physics(Entity &player) {
   update_xposition(player);
   update_yposition(player);
 }
-void update_slime(Entity &slime) {
+void update_slime(Entity &slime) {            // actualise la position du slime
 
   slime.prevx = slime.x;
   slime.prevy = slime.y;
@@ -1146,7 +1146,7 @@ void update_slime(Entity &slime) {
     slime.x = slime.x + slime.speedx;
   }  
 }
-void update_bouclier(Entity &bouclier) {
+void update_bouclier(Entity &bouclier) {      // actualise la position du bouclier
 
   bouclier.prevx = bouclier.x;
   bouclier.prevy = bouclier.y;
@@ -1189,7 +1189,7 @@ void update_bouclier(Entity &bouclier) {
     bouclier.x = bouclier.x + bouclier.speedx;
   }
 }
-void update_plante() {
+void update_plante() {                        // actuallise l'etat de la plante (caché ou pas)
   if(planteCollide) {
     if(dirPlante) art_planted(plantex,plantey-BOX_SIZE);
     else art_planteg(plantex,plantey-BOX_SIZE);
@@ -1212,7 +1212,7 @@ void update_plante() {
     else art_planteg(plantex,plantey-BOX_SIZE);
   }
 }
-void update_xposition(Entity &player) {
+void update_xposition(Entity &player) {       // gere les physiques horizontales
 
   if (player.speedx + player.ax > 10) {
     player.ax = 0;
@@ -1242,7 +1242,7 @@ void update_xposition(Entity &player) {
   }
   else player.x = player.x + player.speedx;
 }
-void update_yposition(Entity &player) {
+void update_yposition(Entity &player) {       // gere les physiques verticales
   player.speedy = player.speedy + player.ay;
   if(player.y + player.speedy > nextFloor - PLAYER_HEIGHT && !downPressed) {
     player.speedy = -player.speedy/2;
@@ -1290,7 +1290,7 @@ void update_yposition(Entity &player) {
   
   player.y = player.y + player.speedy;
 }
-void next_walls(Entity &player) {
+void next_walls(Entity &player) {             // obtiens la position des prochains murs par rapport au joueur
   tabx = player.prevx/BOX_SIZE;
   tabx2 = (player.prevx+BOX_SIZE-1) /BOX_SIZE;
   taby = player.prevy/BOX_SIZE;
@@ -1484,7 +1484,7 @@ void fire_collision(Entity &player) {
   fireCollide = fireCollide || fire2Collide;
 }
 void fell_down() {
-  if(player.y > SCREENHEIGHT - PLAYER_HEIGHT-10) fellDown = true;
+  if(player.y > SCREENHEIGHT - PLAYER_HEIGHT-18) fellDown = true;
   else fellDown = false;
 }
 void collide_test() {
@@ -1512,6 +1512,7 @@ void setup() {
 
 	//setup du compteur de temps
 	timebuffer = millis();
+  timeBufferFPS = millis(); 
 
 	//setup console et ecran
 	Serial.begin(9600);
@@ -1585,10 +1586,10 @@ void loop() {
       setup_slime(slime,-1,-1,0,0);
       setup_bouclier(bouclier,10,9,5,15);
       setup_plante(15,7,false);
-      flammex[0] = NULL;
-      flammey[0] = NULL;
-      flammex[1] = NULL;
-      flammey[1] = NULL;
+      flammex[0] = 6;
+      flammey[0] = 4;
+      flammex[1] = 12;
+      flammey[1] = 4;
     }
     else {
       enablePlante = false;
@@ -1608,8 +1609,21 @@ void loop() {
 
   //deroulement jeu
   while (!finished) {
-		  
+		   
 		timePassed = millis() - timebuffer;
+    timePassedFPS = millis() - timeBufferFPS;
+
+    //boucle fps
+    if(timePassedFPS > 1000) {
+
+      tft.fillRect(SCREENWIDTH-17, (SCREENHEIGHT*0.2)/8,20,18,BLACK);
+
+      display_fps();
+
+      timeBufferFPS = millis();
+      incr = 0;
+    }
+
     //boucle pour répeter une action tout les x millisecondes
     if(timePassed > refresh) {  
       buttons_update();
@@ -1668,6 +1682,7 @@ void loop() {
         }
       }
       timebuffer = millis();
+      incr++;
     } 
   }
 
